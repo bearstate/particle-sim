@@ -197,5 +197,12 @@
     "captures": "captures/s",
     "flux": "flux",
     "none": "No modelled neutron reaction for this element."
+  },
+  "preset": {
+    "title": "Presets",
+    "vdgBe": "Van de Graaff → Be → Th",
+    "linacW": "Linac → W → Th",
+    "glow": "Neon glow discharge",
+    "cwW": "Cockcroft–Walton → X-rays"
   }
 }

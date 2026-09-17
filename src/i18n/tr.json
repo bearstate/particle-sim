@@ -197,5 +197,12 @@
     "captures": "yakalama/s",
     "flux": "akı",
     "none": "Bu element için modellenmiş nötron tepkimesi yok."
+  },
+  "preset": {
+    "title": "Hazır kurulumlar",
+    "vdgBe": "Van de Graaff → Be → Th",
+    "linacW": "LINAC → W → Th",
+    "glow": "Neon parıltı deşarjı",
+    "cwW": "Cockcroft–Walton → X-ışını"
   }
 }

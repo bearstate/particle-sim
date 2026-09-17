@@ -58,6 +58,36 @@ export interface WorkbenchState {
   addWire(kind: PortKind, from: PortRef, to: PortRef): void;
   removeWire(id: string): void;
   clear(): void;
+  /** Kaydedilmis topolojiyi yukler (kaydet/yukle/URL). */
+  load(snapshot: BenchSnapshot): void;
+}
+
+export interface BenchSnapshot {
+  readonly devices: readonly DeviceInstance[];
+  readonly wires: readonly Wire[];
+  readonly nextId: number;
+}
+
+const STORAGE_KEY = 'bench.v1';
+
+export function saveSnapshot(s: BenchSnapshot): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  } catch {
+    /* ozel pencere veya dolu depo: sessizce gec */
+  }
+}
+
+export function readSnapshot(): BenchSnapshot | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as BenchSnapshot;
+    if (!Array.isArray(s.devices) || !Array.isArray(s.wires)) return null;
+    return s;
+  } catch {
+    return null;
+  }
 }
 
 function samePort(a: PortRef, b: PortRef): boolean {
@@ -126,7 +156,18 @@ export const useWorkbench = create<WorkbenchState>((set, get) => ({
   clear() {
     set({ devices: [], wires: [], selectedId: null });
   },
+
+  load(snapshot) {
+    set({ devices: [...snapshot.devices], wires: [...snapshot.wires], nextId: Math.max(1, snapshot.nextId), selectedId: null });
+  },
 }));
+
+// Her degisiklikte (kisa gecikmeyle) yerel depoya yaz; yenilemede tezgah kaybolmasin.
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+useWorkbench.subscribe((s) => {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveSnapshot({ devices: s.devices, wires: s.wires, nextId: s.nextId }), 300);
+});
 
 /** Bir portun bagli oldugu karsi ucu bulur (yoksa null). */
 export function connectedTo(wires: readonly Wire[], port: PortRef): PortRef | null {

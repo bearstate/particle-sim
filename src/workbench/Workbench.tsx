@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { useWorkbench } from './model.ts';
+import { useWorkbench, readSnapshot } from './model.ts';
 import { solveBench } from './solve.ts';
 import { Palette } from './Palette.tsx';
 import { Canvas } from './Canvas.tsx';
@@ -99,6 +99,11 @@ export function Workbench() {
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
+  }, []);
+
+  useEffect(() => {
+    const snap = readSnapshot();
+    if (snap && useWorkbench.getState().devices.length === 0 && snap.devices.length > 0) useWorkbench.getState().load(snap);
   }, []);
 
   const beginPlace = (entry: PaletteEntry, e: ReactPointerEvent) => {

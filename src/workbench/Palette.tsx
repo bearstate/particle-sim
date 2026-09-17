@@ -4,6 +4,7 @@ import { PALETTE, type PaletteEntry } from './catalog.ts';
 import { DeviceGlyph, GlyphDefs } from './DeviceGlyph.tsx';
 import { specOf } from './catalog.ts';
 import { useWorkbench } from './model.ts';
+import { PRESETS } from './presets.ts';
 
 /**
  * Sag panel: cihaz paleti. Bir kalemi basili tutup tezgaha suruklersin;
@@ -49,6 +50,14 @@ export function Palette(props: { onBeginPlace: (entry: PaletteEntry, e: ReactPoi
           {t('palette.clear')}
         </button>
       ) : null}
+      <div className="presets">
+        <h3>{t('preset.title')}</h3>
+        {PRESETS.map((p) => (
+          <button key={p.id} type="button" className="palette-clear" onClick={p.build}>
+            {t(p.labelKey)}
+          </button>
+        ))}
+      </div>
     </aside>
   );
 }
