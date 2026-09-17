@@ -8,7 +8,8 @@ import { Z, glowTexture } from '../util.ts';
 export function Target3D(props: { x: number; y: number; sol: TargetSolution }) {
   const { x, y, sol } = props;
   const tex = useMemo(() => glowTexture(), []);
-  const glow = glowIntensity(sol.tempK, 1400);
+  // T^4 sinirsiz buyur; goz ve bloom icin doyuma sok (erime noktasinda en cok 2.5).
+  const glow = Math.min(2.5, Math.sqrt(glowIntensity(sol.tempK, 1600)));
   const emissive = useMemo(() => {
     const [r, g, b] = blackbodyLinearRgb(Math.max(800, sol.tempK));
     return new THREE.Color(r, g, b);
@@ -23,13 +24,13 @@ export function Target3D(props: { x: number; y: number; sol: TargetSolution }) {
           metalness={0.85}
           roughness={0.4}
           emissive={emissive}
-          emissiveIntensity={hot ? Math.min(6, 0.6 + glow * 1.4) : 0}
+          emissiveIntensity={hot ? 0.5 + glow * 1.3 : 0}
           toneMapped={false}
         />
       </mesh>
       {hot ? (
-        <sprite position={[x + 48, -(y + 48), Z.device + 12]} scale={[120 + glow * 40, 150 + glow * 40, 1]}>
-          <spriteMaterial map={tex} color={emissive} transparent opacity={Math.min(0.5, 0.12 + glow * 0.12)} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
+        <sprite position={[x + 48, -(y + 48), Z.device + 12]} scale={[110 + glow * 36, 140 + glow * 36, 1]}>
+          <spriteMaterial map={tex} color={emissive} transparent opacity={0.1 + glow * 0.1} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false} />
         </sprite>
       ) : null}
       {/* tutucu */}

@@ -82,7 +82,70 @@ export function sphereRadiusPx(radiusM: number): number {
   return 44 * Math.sqrt(Math.max(0.02, radiusM) / 0.15);
 }
 
+const RF_FREQ = { key: 'frequency', labelKey: 'param.frequency', kind: 'number', min: 5e7, max: 3e9, step: 0.01, log: true, unit: 'Hz' } as const;
+
+/** LINAC geometrisi: suruklenme tupleri bu araliga olceklenir. */
+export const LINAC = { axisY: 48, beamStartX: 26, beamEndX: 328 } as const;
+/** Cockcroft-Walton / Marx kutu geometrisi. */
+export const LADDER = { top: 18, bottom: 190, cx: 75 } as const;
+
 export const DEVICE_SPECS: Readonly<Record<DeviceKind, DeviceSpec>> = {
+  cockcroftwalton: {
+    kind: 'cockcroftwalton',
+    w: 150,
+    h: 200,
+    ports: [
+      { id: 'hv', kind: 'hv', labelKey: 'port.hv', x: LADDER.cx, y: 8 },
+      { id: 'gnd', kind: 'ground', labelKey: 'port.ground', x: LADDER.cx, y: 196 },
+    ],
+    params: [
+      { key: 'stages', labelKey: 'param.stages', kind: 'number', min: 1, max: 12, step: 1, unit: '', digits: 0 },
+      { key: 'inputPeakV', labelKey: 'param.inputPeakV', kind: 'number', min: 1e4, max: 5e5, step: 0.01, log: true, unit: 'V' },
+      { key: 'frequency', labelKey: 'param.frequency', kind: 'number', min: 50, max: 1e5, step: 0.01, log: true, unit: 'Hz' },
+      { key: 'capacitance', labelKey: 'param.capacitance', kind: 'number', min: 1e-9, max: 1e-6, step: 0.02, log: true, unit: 'F' },
+    ],
+  },
+  marx: {
+    kind: 'marx',
+    w: 150,
+    h: 200,
+    ports: [
+      { id: 'hv', kind: 'hv', labelKey: 'port.hv', x: LADDER.cx, y: 8 },
+      { id: 'gnd', kind: 'ground', labelKey: 'port.ground', x: LADDER.cx, y: 196 },
+    ],
+    params: [
+      { key: 'stages', labelKey: 'param.stages', kind: 'number', min: 2, max: 20, step: 1, unit: '', digits: 0 },
+      { key: 'stageVoltage', labelKey: 'param.stageVoltage', kind: 'number', min: 1e4, max: 2e5, step: 0.01, log: true, unit: 'V' },
+      { key: 'capacitance', labelKey: 'param.capacitance', kind: 'number', min: 1e-9, max: 1e-6, step: 0.02, log: true, unit: 'F' },
+    ],
+  },
+  klystron: {
+    kind: 'klystron',
+    w: 110,
+    h: 84,
+    ports: [
+      { id: 'rf', kind: 'rf', labelKey: 'port.rf', x: 110, y: 42 },
+      { id: 'gnd', kind: 'ground', labelKey: 'port.ground', x: 55, y: 80 },
+    ],
+    params: [{ key: 'rfPower', labelKey: 'param.rfPower', kind: 'number', min: 1e4, max: 5e6, step: 0.01, log: true, unit: 'W' }],
+  },
+  linac: {
+    kind: 'linac',
+    w: 340,
+    h: 96,
+    ports: [
+      { id: 'cathode', kind: 'ground', labelKey: 'port.cathode', x: 14, y: 12 },
+      { id: 'rf', kind: 'rf', labelKey: 'port.rf_in', x: 170, y: 10 },
+    ],
+    params: [
+      { key: 'particle', labelKey: 'param.particle', kind: 'enum', options: [{ value: 'electron', labelKey: 'linac.electron' }, { value: 'proton', labelKey: 'linac.proton' }] },
+      { key: 'mode', labelKey: 'param.mode', kind: 'enum', options: [{ value: 'alvarez', labelKey: 'linac.alvarez' }, { value: 'wideroe', labelKey: 'linac.wideroe' }] },
+      RF_FREQ,
+      { key: 'gapVoltage', labelKey: 'param.gapVoltage', kind: 'number', min: 5e4, max: 2e6, step: 0.01, log: true, unit: 'V' },
+      { key: 'gapCount', labelKey: 'param.gapCount', kind: 'number', min: 1, max: 40, step: 1, unit: '', digits: 0 },
+    ],
+    emitter: { x: 340, y: LINAC.axisY },
+  },
   vandegraaff: {
     kind: 'vandegraaff',
     w: 120,
@@ -133,6 +196,10 @@ export const DEVICE_SPECS: Readonly<Record<DeviceKind, DeviceSpec>> = {
 
 export const PALETTE: readonly PaletteEntry[] = [
   { id: 'vandegraaff', kind: 'vandegraaff', labelKey: 'device.vandegraaff', defaults: { voltage: 300e3, radius: 0.15, gas: 'air', pressure: 101325 } },
+  { id: 'cockcroftwalton', kind: 'cockcroftwalton', labelKey: 'device.cockcroftwalton', defaults: { stages: 4, inputPeakV: 100e3, frequency: 50e3, capacitance: 10e-9 } },
+  { id: 'marx', kind: 'marx', labelKey: 'device.marx', defaults: { stages: 10, stageVoltage: 100e3, capacitance: 100e-9 } },
+  { id: 'klystron', kind: 'klystron', labelKey: 'device.klystron', defaults: { rfPower: 1e6 } },
+  { id: 'linac', kind: 'linac', labelKey: 'device.linac', defaults: { particle: 'electron', mode: 'alvarez', frequency: 200e6, gapVoltage: 500e3, gapCount: 20 } },
   { id: 'tube', kind: 'tube', labelKey: 'device.tube', defaults: { gas: 'vacuum', pressure: 1e-3, cathodeElement: 'W', anodeElement: 'W' } },
   { id: 'target', kind: 'target', labelKey: 'device.target', defaults: { element: 'W', thickness: 2 } },
   { id: 'target_be', kind: 'target', labelKey: 'device.target_be', defaults: { element: 'Be', thickness: 5 } },
@@ -161,3 +228,6 @@ export function portOf(
   }
   return p;
 }
+
+/** Yuksek gerilim ureten kaynak turleri (tup anoduna baglanabilir). */
+export const HV_SOURCE_KINDS: readonly DeviceKind[] = ['vandegraaff', 'cockcroftwalton', 'marx'];

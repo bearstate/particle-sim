@@ -1,41 +1,74 @@
 import type { DeviceInstance, Wire } from './model.ts';
 import { connectedTo } from './model.ts';
-import { specOf, TUBE } from './catalog.ts';
+import { specOf, TUBE, LINAC } from './catalog.ts';
 import { gasProperties, relativeDensity, type GasId } from '../physics/gas/gases.ts';
 import { breakdownVoltageV } from '../physics/gas/paschen.ts';
 import { sparkLengthM, arcRatePerS } from '../physics/gas/arc.ts';
 import { sphereCoronaOnsetVoltageV } from '../physics/gas/corona.ts';
 import * as vdg from '../physics/sources/vandeGraaff.ts';
+import * as cw from '../physics/sources/cockcroftWalton.ts';
+import * as marx from '../physics/sources/marx.ts';
+import * as linac from '../physics/sources/linac.ts';
 import { childLangmuirElectron } from '../physics/sources/emission.ts';
 import { productionEfficiency } from '../physics/interaction/bremsstrahlung.ts';
 import { naturalThresholdMeV, thickTargetNeutronYieldPerS } from '../physics/interaction/photoneutron.ts';
-import { elementBySymbol, type Element } from '../physics/data/elements.ts';
+import { elementBySymbol, densityKgPerM3, type Element } from '../physics/data/elements.ts';
 import { mostAbundantA, afterNeutronEmission, afterNeutronCapture, type NuclideId } from '../physics/data/nuclides.ts';
-import { densityKgPerM3 } from '../physics/data/elements.ts';
 import { equilibriumTempK, type ThermalBody } from '../physics/thermal/heat.ts';
+import { ELECTRON_MASS_MEV, PROTON_MASS_MEV, MEV_TO_J } from '../physics/constants.ts';
 
 /**
  * Tezgah topolojisinden fizik durumu turetir. Saf fonksiyon.
  * DESIGN.md "Asama 2 dilimi", madde 3.
  *
- * Kablo yalnizca elektrikte vardir. Demet GEOMETRIDIR: tup cikisindan saga
- * ucar, ekseni kesen ilk cihaza carpar. Hedeften X-isini ileri, notron her
- * yone cikar; notronlari yakin bir hedef yakalar.
+ * Kablo yalnizca elektrikte (hv, ground, rf). Demet GEOMETRIDIR: kaynagin
+ * cikisindan saga ucar, ekseni kesen ilk cihaza carpar.
  */
 
 export interface VdgSolution {
-  /** Gercek terminal gerilimi (delinme ile sinirli), V. */
   readonly voltageV: number;
-  /** Kullanicinin istedigi gerilim, V. */
   readonly targetV: number;
   readonly maxV: number;
   readonly onsetV: number;
   readonly sparkM: number;
   readonly delivered: boolean;
-  /** Istenen gerilim kurenin tutabileceginden buyuk: surekli desarj. */
   readonly breakdown: boolean;
-  /** Ark olay hizi, 1/s. Gorsel katman bunu tuketir. */
   readonly arcRatePerS: number;
+}
+
+/** Cockcroft-Walton ve Marx: tup anodunu besleyen DC/darbeli kaynaklar. */
+export interface HvSolution {
+  readonly kind: 'cockcroftwalton' | 'marx';
+  readonly voltageV: number;
+  readonly idealV: number;
+  /** Yuk altinda dusum (CW) veya verim kaybi (Marx), V. */
+  readonly dropV: number;
+  readonly loadCurrentA: number;
+  readonly pulsed: boolean;
+  readonly delivered: boolean;
+  /** Merdiven/kademe gerilim profili (sematik icin). */
+  readonly stageProfileV: Float64Array;
+}
+
+export interface KlystronSolution {
+  readonly rfPowerW: number;
+  readonly delivered: boolean;
+}
+
+export type Species = 'electron' | 'proton';
+
+export interface LinacSolution {
+  readonly species: Species;
+  readonly powered: boolean;
+  readonly grounded: boolean;
+  readonly rfPowerW: number;
+  readonly energyMeV: number;
+  readonly beamCurrentA: number;
+  readonly beamPowerW: number;
+  readonly driftTubeLengthsM: Float64Array;
+  readonly gradientMVPerM: number;
+  readonly kilpatrickMVPerM: number;
+  readonly arcing: boolean;
 }
 
 export type TubeRegime = 'off' | 'vacuum' | 'glow' | 'arc' | 'blocked';
@@ -50,9 +83,10 @@ export interface TubeSolution {
   readonly beamPowerW: number;
   readonly gas: GasId;
   readonly pressurePa: number;
+  readonly pulsed: boolean;
 }
 
-export type Incoming = 'electrons' | 'neutrons' | 'photons' | null;
+export type Incoming = 'electrons' | 'protons' | 'neutrons' | 'photons' | null;
 
 export interface TargetSolution {
   readonly element: Element;
@@ -66,28 +100,28 @@ export interface TargetSolution {
   readonly neutronYieldPerS: number;
   readonly xrayEfficiency: number;
   readonly heatW: number;
-  /** Denge sicakligi, K (1x2 cm levha, isima + tutucu iletimi). */
   readonly tempK: number;
   readonly product: NuclideId | null;
-  readonly event: 'photoneutron' | 'below_threshold' | 'capture' | 'photons' | null;
+  readonly event: 'photoneutron' | 'below_threshold' | 'capture' | 'photons' | 'proton_heat' | null;
 }
 
 export interface BeamSegment {
-  readonly kind: 'electron' | 'xray' | 'neutron';
+  readonly kind: 'electron' | 'proton' | 'xray' | 'neutron';
   readonly x1: number;
   readonly y1: number;
   readonly x2: number;
   readonly y2: number;
-  /** 0..1 gorsel yogunluk (parcacik sayisi/parlaklik). */
   readonly intensity: number;
   readonly sourceId: string;
   readonly targetId: string | null;
-  /** Isotropik puskurme (notron); x2,y2 anlamsiz. */
   readonly spray?: boolean;
 }
 
 export interface BenchSolution {
   readonly vdgs: Readonly<Record<string, VdgSolution>>;
+  readonly hv: Readonly<Record<string, HvSolution>>;
+  readonly klystrons: Readonly<Record<string, KlystronSolution>>;
+  readonly linacs: Readonly<Record<string, LinacSolution>>;
   readonly tubes: Readonly<Record<string, TubeSolution>>;
   readonly targets: Readonly<Record<string, TargetSolution>>;
   readonly beams: readonly BeamSegment[];
@@ -98,21 +132,21 @@ const str = (v: unknown, d: string): string => (typeof v === 'string' ? v : d);
 
 const TUBE_GAP_M = 0.2;
 const CATHODE_AREA_M2 = 1e-4;
-/** Demet ekseninin cihaz kutusunu "kesmesi" icin dikey tolerans, px. */
 const HIT_TOLERANCE_PX = 28;
-/** Notron yakalama mesafesi (merkezden merkeze), px. */
 const NEUTRON_REACH_PX = 340;
-/** Carpmayan demetin cizildigi uzunluk, px. */
 const FREE_FLIGHT_PX = 560;
+/** CW ve Marx'in verebilecegi ortalama akim tavani, A. */
+const CW_CURRENT_CAP_A = 5e-3;
+const MARX_CURRENT_CAP_A = 2e-3;
+/** LINAC enjektor tavanlari, A. */
+const INJECTOR_CAP_A: Record<Species, number> = { electron: 5e-3, proton: 2e-3 };
+const INJECTION_MEV: Record<Species, number> = { electron: 0.05, proton: 0.1 };
+/** Demet gucu RF gucunun bu kesrini asamaz. */
+const RF_TO_BEAM = 0.5;
+/** Modern yapilar Kilpatrick'in bu katina kadar calisir. */
+const KILPATRICK_FACTOR = 1.8;
 
-/** (x,y)'den saga giden isinin kestigi ilk cihaz (kendisi haric). */
-export function firstHitToRight(
-  devices: readonly DeviceInstance[],
-  fromId: string,
-  x: number,
-  y: number,
-  tolerance = HIT_TOLERANCE_PX,
-): DeviceInstance | null {
+export function firstHitToRight(devices: readonly DeviceInstance[], fromId: string, x: number, y: number, tolerance = HIT_TOLERANCE_PX): DeviceInstance | null {
   let best: DeviceInstance | null = null;
   let bestX = Infinity;
   for (const d of devices) {
@@ -120,10 +154,7 @@ export function firstHitToRight(
     const s = specOf(d.kind);
     if (d.x < x) continue;
     if (y < d.y - tolerance || y > d.y + s.h + tolerance) continue;
-    if (d.x < bestX) {
-      best = d;
-      bestX = d.x;
-    }
+    if (d.x < bestX) { best = d; bestX = d.x; }
   }
   return best;
 }
@@ -140,10 +171,7 @@ function nearestTargetWithin(devices: readonly DeviceInstance[], fromId: string,
     if (d.id === fromId || d.kind !== 'target') continue;
     const c = center(d);
     const dist = Math.hypot(c.x - px, c.y - py);
-    if (dist < bestD) {
-      best = d;
-      bestD = dist;
-    }
+    if (dist < bestD) { best = d; bestD = dist; }
   }
   return best;
 }
@@ -151,18 +179,22 @@ function nearestTargetWithin(devices: readonly DeviceInstance[], fromId: string,
 export function solveBench(devices: readonly DeviceInstance[], wires: readonly Wire[]): BenchSolution {
   const byId = new Map(devices.map((d) => [d.id, d]));
   const vdgs: Record<string, VdgSolution> = {};
+  const hv: Record<string, HvSolution> = {};
+  const klystrons: Record<string, KlystronSolution> = {};
+  const linacs: Record<string, LinacSolution> = {};
   const tubes: Record<string, TubeSolution> = {};
   const targets: Record<string, TargetSolution> = {};
   const beams: BeamSegment[] = [];
 
+  const isGrounded = (id: string, port: string) => {
+    const c = connectedTo(wires, { device: id, port });
+    return c !== null && byId.get(c.device)?.kind === 'ground';
+  };
+
+  // --- Van de Graaff ---
   for (const d of devices) {
     if (d.kind !== 'vandegraaff') continue;
-    const params: vdg.VanDeGraaffParams = {
-      ...vdg.DEFAULT_VAN_DE_GRAAFF,
-      sphereRadiusM: num(d.params['radius'], 0.15),
-      gasId: str(d.params['gas'], 'air') as GasId,
-      pressurePa: num(d.params['pressure'], 101325),
-    };
+    const params: vdg.VanDeGraaffParams = { ...vdg.DEFAULT_VAN_DE_GRAAFF, sphereRadiusM: num(d.params['radius'], 0.15), gasId: str(d.params['gas'], 'air') as GasId, pressurePa: num(d.params['pressure'], 101325) };
     const maxV = vdg.maxTerminalVoltageV(params);
     const targetV = num(d.params['voltage'], 3e5);
     const voltageV = Math.min(targetV, maxV);
@@ -171,23 +203,96 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
     const delivered = connectedTo(wires, { device: d.id, port: 'hv' }) !== null;
     const breakdown = targetV > maxV;
     const onsetV = sphereCoronaOnsetVoltageV(params.sphereRadiusM, delta);
-    // Kablosuz yuklu terminal her zaman cevresine bosalir; gerilim tavana
-    // yaklastikca siklasir, delinmede firtinaya doner. Bagliysa yuk anoda gider.
-    const rate = breakdown
-      ? 8 + arcRatePerS(targetV, maxV, 18)
-      : delivered
-        ? 0
-        : 1 + 7 * (voltageV / maxV);
+    const rate = breakdown ? 8 + arcRatePerS(targetV, maxV, 18) : delivered ? 0 : 1 + 7 * (voltageV / maxV);
     vdgs[d.id] = { voltageV, targetV, maxV, onsetV, sparkM: sparkLengthM(voltageV, eBr), delivered, breakdown, arcRatePerS: rate };
   }
 
+  // --- Tup yuk akimi tahmini (CW dusumu icin sabit nokta) ---
+  const tubeLoadFor = (sourceId: string, voltageV: number, cap: number): number => {
+    for (const t of devices) {
+      if (t.kind !== 'tube') continue;
+      const a = connectedTo(wires, { device: t.id, port: 'anode' });
+      if (!a || a.device !== sourceId || !isGrounded(t.id, 'cathode')) continue;
+      const gas = str(t.params['gas'], 'vacuum');
+      if (gas !== 'vacuum' && num(t.params['pressure'], 1e-3) >= 1e-2) return 0;
+      return Math.min(childLangmuirElectron(voltageV, TUBE_GAP_M) * CATHODE_AREA_M2, cap);
+    }
+    return 0;
+  };
+
+  // --- Cockcroft-Walton ---
+  for (const d of devices) {
+    if (d.kind !== 'cockcroftwalton') continue;
+    const p: cw.CockcroftWaltonParams = { stages: Math.max(1, Math.round(num(d.params['stages'], 4))), inputPeakV: num(d.params['inputPeakV'], 1e5), frequencyHz: num(d.params['frequency'], 5e4), capacitanceF: num(d.params['capacitance'], 1e-8) };
+    const idealV = cw.idealOutputV(p);
+    let v = idealV;
+    let i = 0;
+    for (let k = 0; k < 4; k++) { i = tubeLoadFor(d.id, v, CW_CURRENT_CAP_A); v = cw.outputVoltageV(p, i); }
+    hv[d.id] = { kind: 'cockcroftwalton', voltageV: v, idealV, dropV: idealV - v, loadCurrentA: i, pulsed: false, delivered: connectedTo(wires, { device: d.id, port: 'hv' }) !== null, stageProfileV: cw.stageVoltageProfileV(p, i) };
+  }
+
+  // --- Marx ---
+  for (const d of devices) {
+    if (d.kind !== 'marx') continue;
+    const p: marx.MarxParams = { ...marx.DEFAULT_MARX, stages: Math.max(2, Math.round(num(d.params['stages'], 10))), stageVoltageV: num(d.params['stageVoltage'], 1e5), stageCapacitanceF: num(d.params['capacitance'], 1e-7) };
+    const idealV = marx.idealOutputV(p);
+    const v = marx.peakOutputV(p);
+    const i = tubeLoadFor(d.id, v, MARX_CURRENT_CAP_A);
+    const profile = new Float64Array(p.stages);
+    for (let k = 0; k < p.stages; k++) profile[k] = p.stageVoltageV * (k + 1) * (v / idealV);
+    hv[d.id] = { kind: 'marx', voltageV: v, idealV, dropV: idealV - v, loadCurrentA: i, pulsed: true, delivered: connectedTo(wires, { device: d.id, port: 'hv' }) !== null, stageProfileV: profile };
+  }
+
+  // --- Klistron ---
+  for (const d of devices) {
+    if (d.kind !== 'klystron') continue;
+    klystrons[d.id] = { rfPowerW: num(d.params['rfPower'], 1e6), delivered: connectedTo(wires, { device: d.id, port: 'rf' }) !== null };
+  }
+
+  // --- LINAC ---
+  for (const d of devices) {
+    if (d.kind !== 'linac') continue;
+    const species = (str(d.params['particle'], 'electron') === 'proton' ? 'proton' : 'electron') as Species;
+    const rf = connectedTo(wires, { device: d.id, port: 'rf' });
+    const kl = rf ? klystrons[rf.device] : undefined;
+    const grounded = isGrounded(d.id, 'cathode');
+    const rfPowerW = kl?.rfPowerW ?? 0;
+    const powered = rfPowerW > 0;
+    const p: linac.LinacParams = { mode: str(d.params['mode'], 'alvarez') === 'wideroe' ? 'wideroe' : 'alvarez', frequencyHz: num(d.params['frequency'], 2e8), gapVoltageV: num(d.params['gapVoltage'], 5e5), gapLengthM: 0.02, synchronousPhaseRad: -Math.PI / 6, gapCount: Math.max(1, Math.round(num(d.params['gapCount'], 20))) };
+    const rest = species === 'proton' ? PROTON_MASS_MEV : ELECTRON_MASS_MEV;
+    const profile = linac.solveProfile(p, rest, 1, INJECTION_MEV[species]);
+    const totalLen = profile.driftTubeLengthsM.reduce((a, b) => a + b, 0) + p.gapCount * p.gapLengthM;
+    const gradient = totalLen > 0 ? profile.finalEnergyMeV / totalLen : 0;
+    const kilpatrick = linac.kilpatrickFieldMVPerM(p.frequencyHz) * KILPATRICK_FACTOR;
+    // Bosluk gradyani: boslukta V0/g; yapinin ortalamasindan cok daha buyuk — Kilpatrick bunu gorur.
+    const gapGradient = p.gapVoltageV / 1e6 / p.gapLengthM;
+    const arcing = gapGradient > kilpatrick;
+    const on = powered && grounded && !arcing;
+    const energyMeV = on ? profile.finalEnergyMeV : 0;
+    const rfCap = energyMeV > 0 ? (RF_TO_BEAM * rfPowerW) / (energyMeV * 1e6) : 0;
+    const beamCurrentA = on ? Math.min(INJECTOR_CAP_A[species], rfCap) : 0;
+    linacs[d.id] = { species, powered, grounded, rfPowerW, energyMeV, beamCurrentA, beamPowerW: beamCurrentA * energyMeV * 1e6, driftTubeLengthsM: profile.driftTubeLengthsM, gradientMVPerM: gradient, kilpatrickMVPerM: kilpatrick, arcing };
+    if (on && beamCurrentA > 0) {
+      const y = d.y + LINAC.axisY;
+      const intensity = Math.min(1, 0.4 + Math.log10(1 + beamCurrentA * 1e3) / 2);
+      const kind = species === 'proton' ? 'proton' : 'electron';
+      beams.push({ kind, x1: d.x + LINAC.beamStartX, y1: y, x2: d.x + LINAC.beamEndX, y2: y, intensity, sourceId: d.id, targetId: null });
+      const exitX = d.x + specOf('linac').w;
+      const hit = firstHitToRight(devices, d.id, exitX, y);
+      beams.push({ kind, x1: exitX, y1: y, x2: hit ? hit.x : exitX + FREE_FLIGHT_PX, y2: y, intensity, sourceId: d.id, targetId: hit?.id ?? null });
+    }
+  }
+
+  // --- Tupler: anot herhangi bir HV kaynagina baglanabilir ---
   for (const d of devices) {
     if (d.kind !== 'tube') continue;
     const anode = connectedTo(wires, { device: d.id, port: 'anode' });
-    const cathode = connectedTo(wires, { device: d.id, port: 'cathode' });
     const source = anode ? byId.get(anode.device) : undefined;
-    const grounded = cathode !== null && byId.get(cathode.device)?.kind === 'ground';
-    const voltageV = source && source.kind === 'vandegraaff' ? (vdgs[source.id]?.voltageV ?? 0) : 0;
+    const grounded = isGrounded(d.id, 'cathode');
+    let voltageV = 0;
+    let pulsed = false;
+    if (source?.kind === 'vandegraaff') voltageV = vdgs[source.id]?.voltageV ?? 0;
+    else if (source && (source.kind === 'cockcroftwalton' || source.kind === 'marx')) { voltageV = hv[source.id]?.voltageV ?? 0; pulsed = hv[source.id]?.pulsed ?? false; }
     const gas = str(d.params['gas'], 'vacuum') as GasId;
     const pressurePa = num(d.params['pressure'], 1e-3);
     let regime: TubeRegime = 'off';
@@ -195,7 +300,7 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
     if (voltageV > 0 && grounded) {
       if (gas === 'vacuum' || pressurePa < 1e-2) {
         regime = 'vacuum';
-        const supply = source ? vdg.beltCurrentA(vdg.DEFAULT_VAN_DE_GRAAFF) : 0;
+        const supply = source?.kind === 'vandegraaff' ? vdg.beltCurrentA(vdg.DEFAULT_VAN_DE_GRAAFF) : source?.kind === 'marx' ? MARX_CURRENT_CAP_A : CW_CURRENT_CAP_A;
         beamCurrentA = Math.min(childLangmuirElectron(voltageV, TUBE_GAP_M) * CATHODE_AREA_M2, supply);
       } else {
         const vb = breakdownVoltageV(gas, pressurePa, TUBE_GAP_M);
@@ -203,8 +308,7 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
       }
     }
     const electronEnergyMeV = regime === 'vacuum' ? voltageV / 1e6 : 0;
-    tubes[d.id] = { voltageV, sourceId: source?.id ?? null, grounded, regime, beamCurrentA, electronEnergyMeV, beamPowerW: beamCurrentA * voltageV, gas, pressurePa };
-
+    tubes[d.id] = { voltageV, sourceId: source?.id ?? null, grounded, regime, beamCurrentA, electronEnergyMeV, beamPowerW: beamCurrentA * voltageV, gas, pressurePa, pulsed };
     if (regime === 'vacuum' && beamCurrentA > 0) {
       const s = specOf('tube');
       const y = d.y + TUBE.axisY;
@@ -212,58 +316,52 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
       beams.push({ kind: 'electron', x1: d.x + TUBE.cathodeX, y1: y, x2: d.x + TUBE.anodeX, y2: y, intensity, sourceId: d.id, targetId: null });
       const exitX = d.x + (s.emitter?.x ?? s.w);
       const hit = firstHitToRight(devices, d.id, exitX, y);
-      const x2 = hit ? hit.x : exitX + FREE_FLIGHT_PX;
-      beams.push({ kind: 'electron', x1: exitX, y1: y, x2, y2: y, intensity, sourceId: d.id, targetId: hit?.id ?? null });
+      beams.push({ kind: 'electron', x1: exitX, y1: y, x2: hit ? hit.x : exitX + FREE_FLIGHT_PX, y2: y, intensity, sourceId: d.id, targetId: hit?.id ?? null });
     }
   }
 
-  // Hedefler: once elektron alanlar, sonra notron/foton alanlar.
+  // --- Hedefler ---
   const targetDevices = devices.filter((d) => d.kind === 'target');
-  const electronHits = new Map<string, BeamSegment>();
-  for (const b of beams) if (b.kind === 'electron' && b.targetId) electronHits.set(b.targetId, b);
+  const primaryHits = new Map<string, BeamSegment>();
+  for (const b of beams) if ((b.kind === 'electron' || b.kind === 'proton') && b.targetId) primaryHits.set(b.targetId, b);
 
-  const resolve = (d: DeviceInstance, incoming: Incoming, sourceId: string | null, electronEnergyMeV: number, beamPowerW: number): TargetSolution => {
+  const resolve = (d: DeviceInstance, incoming: Incoming, sourceId: string | null, energyMeV: number, beamPowerW: number): TargetSolution => {
     const element = elementBySymbol(str(d.params['element'], 'W')) ?? elementBySymbol('W')!;
     const nuclide: NuclideId = { Z: element.Z, A: mostAbundantA(element.Z, element.massNumber) };
     const thresholdMeV = naturalThresholdMeV(element.Z, element.massNumber);
-    const aboveThreshold = incoming === 'electrons' && electronEnergyMeV > thresholdMeV;
-    const neutronYieldPerS = incoming === 'electrons' ? thickTargetNeutronYieldPerS(element.Z, element.massNumber, electronEnergyMeV, beamPowerW) : 0;
-    const xrayEfficiency = incoming === 'electrons' ? productionEfficiency(element.Z, electronEnergyMeV * 1e6) : 0;
+    const electrons = incoming === 'electrons';
+    const aboveThreshold = electrons && energyMeV > thresholdMeV;
+    const neutronYieldPerS = electrons ? thickTargetNeutronYieldPerS(element.Z, element.massNumber, energyMeV, beamPowerW) : 0;
+    const xrayEfficiency = electrons ? productionEfficiency(element.Z, energyMeV * 1e6) : 0;
     let event: TargetSolution['event'] = null;
     let product: NuclideId | null = null;
-    if (incoming === 'electrons') { event = aboveThreshold ? 'photoneutron' : 'below_threshold'; product = aboveThreshold ? afterNeutronEmission(nuclide) : null; }
+    if (electrons) { event = aboveThreshold ? 'photoneutron' : 'below_threshold'; product = aboveThreshold ? afterNeutronEmission(nuclide) : null; }
+    else if (incoming === 'protons') event = 'proton_heat';
     else if (incoming === 'neutrons') { event = 'capture'; product = afterNeutronCapture(nuclide); }
     else if (incoming === 'photons') event = 'photons';
     const heatW = beamPowerW * (1 - xrayEfficiency);
     const thicknessM = num(d.params['thickness'], 2) * 1e-3;
     const faceM2 = 0.01 * 0.02;
-    const body: ThermalBody = {
-      massKg: densityKgPerM3(element) * faceM2 * thicknessM,
-      specificHeatJPerKgK: element.specificHeatJPerKgK,
-      surfaceAreaM2: 2 * faceM2 + 2 * (0.01 + 0.02) * thicknessM,
-      emissivity: 0.35,
-      conductanceWPerK: 0.05,
-      ambientTempK: 293.15,
-      meltingPointK: element.meltingPointK,
-      boilingPointK: element.boilingPointK,
-      latentHeatFusionJPerKg: element.latentHeatFusionKJPerKg * 1000,
-      latentHeatVaporJPerKg: element.latentHeatVaporKJPerKg * 1000,
-    };
+    const body: ThermalBody = { massKg: densityKgPerM3(element) * faceM2 * thicknessM, specificHeatJPerKgK: element.specificHeatJPerKgK, surfaceAreaM2: 2 * faceM2 + 2 * (0.01 + 0.02) * thicknessM, emissivity: 0.35, conductanceWPerK: 0.05, ambientTempK: 293.15, meltingPointK: element.meltingPointK, boilingPointK: element.boilingPointK, latentHeatFusionJPerKg: element.latentHeatFusionKJPerKg * 1000, latentHeatVaporJPerKg: element.latentHeatVaporKJPerKg * 1000 };
     const tempK = heatW > 0 ? Math.min(equilibriumTempK(body, heatW), element.meltingPointK) : 293.15;
-    return { element, nuclide, incoming, sourceId, electronEnergyMeV, beamPowerW, thresholdMeV, aboveThreshold, neutronYieldPerS, xrayEfficiency, heatW, tempK, product, event };
+    return { element, nuclide, incoming, sourceId, electronEnergyMeV: energyMeV, beamPowerW, thresholdMeV, aboveThreshold, neutronYieldPerS, xrayEfficiency, heatW, tempK, product, event };
   };
 
   const secondary = new Map<string, { kind: 'neutrons' | 'photons'; from: string }>();
   for (const d of targetDevices) {
-    const hit = electronHits.get(d.id);
+    const hit = primaryHits.get(d.id);
     if (!hit) continue;
-    const tube = tubes[hit.sourceId]!;
-    const sol = resolve(d, 'electrons', hit.sourceId, tube.electronEnergyMeV, tube.beamPowerW);
+    const src = byId.get(hit.sourceId);
+    const energyMeV = src?.kind === 'linac' ? linacs[hit.sourceId]!.energyMeV : tubes[hit.sourceId]!.electronEnergyMeV;
+    const powerW = src?.kind === 'linac' ? linacs[hit.sourceId]!.beamPowerW : tubes[hit.sourceId]!.beamPowerW;
+    const sol = resolve(d, hit.kind === 'proton' ? 'protons' : 'electrons', hit.sourceId, energyMeV, powerW);
     targets[d.id] = sol;
     const c = center(d);
-    beams.push({ kind: 'xray', x1: c.x, y1: c.y, x2: c.x + 300, y2: c.y, intensity: Math.min(1, 0.3 + sol.xrayEfficiency * 40), sourceId: d.id, targetId: null });
-    const photonHit = firstHitToRight(devices, d.id, d.x + specOf('target').w, c.y);
-    if (photonHit?.kind === 'target' && !secondary.has(photonHit.id)) secondary.set(photonHit.id, { kind: 'photons', from: d.id });
+    if (sol.incoming === 'electrons') {
+      beams.push({ kind: 'xray', x1: c.x, y1: c.y, x2: c.x + 300, y2: c.y, intensity: Math.min(1, 0.3 + sol.xrayEfficiency * 40), sourceId: d.id, targetId: null });
+      const photonHit = firstHitToRight(devices, d.id, d.x + specOf('target').w, c.y);
+      if (photonHit?.kind === 'target' && !secondary.has(photonHit.id)) secondary.set(photonHit.id, { kind: 'photons', from: d.id });
+    }
     if (sol.neutronYieldPerS > 0) {
       const intensity = Math.min(1, 0.3 + Math.log10(1 + sol.neutronYieldPerS / 1e6) / 8);
       beams.push({ kind: 'neutron', x1: c.x, y1: c.y, x2: c.x, y2: c.y, intensity, sourceId: d.id, targetId: null, spray: true });
@@ -281,5 +379,7 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
     targets[d.id] = s ? resolve(d, s.kind, s.from, 0, 0) : resolve(d, null, null, 0, 0);
   }
 
-  return { vdgs, tubes, targets, beams };
+  // MeV -> J tutarliligi icin (guc hesaplari eV ile yapildi; sabit burada kalsin)
+  void MEV_TO_J;
+  return { vdgs, hv, klystrons, linacs, tubes, targets, beams };
 }

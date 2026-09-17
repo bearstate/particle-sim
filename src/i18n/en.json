@@ -22,13 +22,19 @@
     "target_any": "Target",
     "target_be": "Target (Be)",
     "target_th": "Thorium blanket",
-    "ground": "Ground"
+    "ground": "Ground",
+    "cockcroftwalton": "Cockcroft–Walton",
+    "marx": "Marx generator",
+    "klystron": "RF source (klystron)",
+    "linac": "Linear accelerator"
   },
   "port": {
     "hv": "High voltage",
     "ground": "Ground",
     "anode": "Anode",
-    "cathode": "Cathode"
+    "cathode": "Cathode",
+    "rf": "RF power",
+    "rf_in": "RF input"
   },
   "param": {
     "voltage": "Terminal voltage",
@@ -38,7 +44,17 @@
     "element": "Element",
     "cathodeElement": "Cathode material",
     "anodeElement": "Anode material",
-    "thickness": "Thickness"
+    "thickness": "Thickness",
+    "stages": "Stages",
+    "inputPeakV": "Input peak voltage",
+    "frequency": "Frequency",
+    "capacitance": "Stage capacitance",
+    "stageVoltage": "Stage charging voltage",
+    "rfPower": "RF power",
+    "gapVoltage": "Gap voltage",
+    "gapCount": "Gap count",
+    "mode": "Structure",
+    "particle": "Particle"
   },
   "gas": {
     "vacuum": "High vacuum",
@@ -73,7 +89,8 @@
     "now": "now {{label}}",
     "scatter": "Electron scattered, no photon",
     "photons_pass": "X-ray photons pass through; nucleus unaffected",
-    "recoil": "Nucleus recoiled"
+    "recoil": "Nucleus recoiled",
+    "proton_heat": "Protons heat the target; no photoneutrons at this energy"
   },
   "isotope": {
     "protium": "protium",
@@ -153,6 +170,15 @@
     "electrons": "electrons",
     "neutrons": "neutrons",
     "photons": "X-rays",
-    "none": "—"
+    "none": "—",
+    "protons": "protons"
+  },
+  "linac": {
+    "wideroe": "Wideröe",
+    "alvarez": "Alvarez",
+    "electron": "electron",
+    "proton": "proton",
+    "noRf": "No RF power: wire a klystron",
+    "kilpatrick": "Kilpatrick limit exceeded: gaps arcing"
   }
 }

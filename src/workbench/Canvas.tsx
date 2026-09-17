@@ -13,7 +13,7 @@ import type { BenchSolution } from './solve.ts';
  * secilir. Demet kablo DEGIL: solve.ts geometriden turetir, BeamLayer cizer.
  */
 
-const PORT_COLOR: Record<PortKind, string> = { hv: '#ff8a3d', ground: '#9aa3b5', beam: '#46d6c4' };
+const PORT_COLOR: Record<PortKind, string> = { hv: '#ff8a3d', ground: '#9aa3b5', rf: '#46d6c4', beam: '#46d6c4' };
 
 interface DragState { id: string; dx: number; dy: number }
 interface WireDrag { from: PortRef; kind: PortKind; x0: number; y0: number; x: number; y: number }
@@ -122,12 +122,24 @@ export function Canvas(props: { solution: BenchSolution; flat?: boolean }) {
         const v = props.solution.vdgs[d.id];
         const t = props.solution.tubes[d.id];
         const g = props.solution.targets[d.id];
-        const active = d.kind === 'vandegraaff' ? (v?.voltageV ?? 0) > 0 : d.kind === 'tube' ? t?.regime === 'vacuum' : (g?.incoming ?? null) !== null;
+        const h = props.solution.hv[d.id];
+        const k = props.solution.klystrons[d.id];
+        const l = props.solution.linacs[d.id];
+        const active =
+          d.kind === 'vandegraaff' ? (v?.voltageV ?? 0) > 0
+          : d.kind === 'tube' ? t?.regime === 'vacuum'
+          : d.kind === 'target' ? (g?.incoming ?? null) !== null
+          : d.kind === 'cockcroftwalton' || d.kind === 'marx' ? (h?.delivered ?? false)
+          : d.kind === 'klystron' ? (k?.delivered ?? false)
+          : d.kind === 'linac' ? (l?.beamCurrentA ?? 0) > 0
+          : false;
         const heat = g ? Math.min(1, g.heatW / 40) : 0;
         const gas = t ? gasProperties(t.gas as GasId) : null;
         const fx = {
           ...(t ? { regime: t.regime, glowColor: gas?.glowColor || '#b48cff' } : {}),
           ...(v ? { breakdown: v.breakdown } : {}),
+          ...(h ? { stageProfile: h.stageProfileV, firing: h.pulsed && h.loadCurrentA > 0 } : {}),
+          ...(l ? { linac: { lengthsM: l.driftTubeLengthsM, arcing: l.arcing, species: l.species } } : {}),
           reduce,
         };
         const radiusPx = d.kind === 'vandegraaff' ? sphereRadiusPx(typeof d.params['radius'] === 'number' ? (d.params['radius'] as number) : 0.15) : 0;

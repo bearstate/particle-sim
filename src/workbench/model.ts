@@ -10,8 +10,16 @@ import { create } from 'zustand';
  * serilestirilmesinden ibaret kalir.
  */
 
-export type DeviceKind = 'vandegraaff' | 'tube' | 'target' | 'ground';
-export type PortKind = 'hv' | 'ground' | 'beam';
+export type DeviceKind =
+  | 'vandegraaff'
+  | 'cockcroftwalton'
+  | 'marx'
+  | 'klystron'
+  | 'linac'
+  | 'tube'
+  | 'target'
+  | 'ground';
+export type PortKind = 'hv' | 'ground' | 'rf' | 'beam';
 export type ParamValue = number | string;
 
 export interface PortRef {

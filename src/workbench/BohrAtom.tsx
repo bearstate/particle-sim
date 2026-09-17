@@ -18,7 +18,7 @@ import { bohrShells, neutronCount, type NuclideId } from '../physics/data/nuclid
  * teper. Azaltilmis harekette koreografi yok; atom ve sonuc etiketi kalir.
  */
 
-export type AtomMode = 'idle' | 'below' | 'above' | 'neutrons' | 'photons';
+export type AtomMode = 'idle' | 'below' | 'above' | 'neutrons' | 'photons' | 'protons';
 export type ActKind = 'scatter' | 'brems' | 'photoneutron' | 'capture' | 'photonPass';
 export type ActPhase = 'start' | 'photon' | 'gdr' | 'neutron' | 'done';
 
@@ -58,19 +58,20 @@ function pickAct(mode: AtomMode): ActKind | null {
     case 'above': return r < 0.45 ? 'scatter' : r < 0.7 ? 'brems' : 'photoneutron';
     case 'neutrons': return 'capture';
     case 'photons': return 'photonPass';
+    case 'protons': return 'scatter';
     default: return null;
   }
 }
 
 /** Elektron yolu: sol taraftan girer, cekirdegin yanindan kivrilarak cikar. */
-function electronPath(c: number, clusterR: number, strong: boolean): { p0: Pt; p1: Pt; p2: Pt } {
+function electronPath(c: number, clusterR: number, strong: boolean, heavy = false): { p0: Pt; p1: Pt; p2: Pt } {
   const entryAngle = rnd(-0.55, 0.55); // sol kenardan, yatayin cevresinde
   const side = Math.random() < 0.5 ? 1 : -1;
   const b = clusterR * rnd(0.5, 1.6) * side; // carpma parametresi
   const p0: Pt = { x: -c - 10, y: Math.tan(entryAngle) * c * 0.6 + b * 0.4 };
   // Kontrol noktasi cekirdegin yaninda: ne kadar yakin, o kadar keskin kivrim.
   const p1: Pt = { x: -clusterR * 0.2, y: b };
-  const deflect = (strong ? 1.6 : 1.0) * (clusterR * 1.4) / Math.max(clusterR * 0.5, Math.abs(b));
+  const deflect = (strong ? 1.6 : 1.0) * (clusterR * 1.4) / Math.max(clusterR * 0.5, Math.abs(b)) * (heavy ? 0.25 : 1);
   const p2: Pt = { x: c + 10, y: b + side * deflect * 0.5 * c * 0.35 };
   return { p0, p1, p2 };
 }
@@ -150,7 +151,7 @@ export function BohrAtom(props: {
       const strong = kind !== 'scatter';
       const path = kind === 'capture' || kind === 'photonPass'
         ? { p0: { x: -cc - 10, y: rnd(-cr * 0.5, cr * 0.5) }, p1: { x: 0, y: 0 }, p2: { x: cc + 10, y: rnd(-cr, cr) } }
-        : electronPath(cc, cr, strong);
+        : electronPath(cc, cr, strong, modeRef.current === 'protons');
       const dur = kind === 'scatter' ? rnd(700, 1000) : kind === 'brems' ? rnd(1300, 1700) : kind === 'photoneutron' ? rnd(2300, 2800) : kind === 'capture' ? rnd(1400, 1800) : rnd(600, 800);
       current = { kind, t0: t, dur, ...path, photonDir: rnd(-0.6, 0.6), neutronDir: rnd(-2.6, 0.6), recoilDir: 0, phase: 'start' };
       current.recoilDir = current.neutronDir + Math.PI;
@@ -295,8 +296,8 @@ export function BohrAtom(props: {
       {electron ? (
         <g>
           {trail.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={3 - i * 0.7} fill="#8fd3ff" opacity={0.35 - i * 0.1} />)}
-          <circle cx={electron.x} cy={electron.y} r={3.6} fill="#dff3ff" />
-          <circle cx={electron.x} cy={electron.y} r={7} fill="#8fd3ff" opacity={0.18} />
+          <circle cx={electron.x} cy={electron.y} r={props.mode === 'protons' ? 5 : 3.6} fill={props.mode === 'protons' ? '#ff9a5a' : '#dff3ff'} />
+          <circle cx={electron.x} cy={electron.y} r={props.mode === 'protons' ? 9 : 7} fill={props.mode === 'protons' ? '#ff8a3d' : '#8fd3ff'} opacity={0.18} />
         </g>
       ) : null}
 

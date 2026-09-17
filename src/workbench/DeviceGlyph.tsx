@@ -2,6 +2,7 @@ import type { DeviceKind, ParamValue } from './model.ts';
 import { specOf, sphereRadiusPx, VDG_SPHERE, TUBE } from './catalog.ts';
 import type { TubeRegime } from './solve.ts';
 import { ArcChannel } from './fx/Sparks.tsx';
+import { CockcroftWaltonGlyph, MarxGlyph, KlystronGlyph, LinacGlyph } from './SourceGlyphs.tsx';
 
 /**
  * Cihazlarin sematik cizimleri. Teknik cizim estetigi; fiziksel olarak dogru
@@ -16,6 +17,10 @@ export interface GlyphFx {
   readonly glowColor?: string;
   readonly breakdown?: boolean;
   readonly reduce?: boolean;
+  /** Kaynak sematikleri icin fizikten gelen veriler. */
+  readonly stageProfile?: Float64Array;
+  readonly firing?: boolean;
+  readonly linac?: { lengthsM: Float64Array; arcing: boolean; species: 'electron' | 'proton' };
 }
 
 export interface GlyphProps {
@@ -42,6 +47,12 @@ export function DeviceGlyph(props: GlyphProps) {
       {props.kind === 'tube' ? <Tube {...props} /> : null}
       {props.kind === 'target' ? <Target {...props} /> : null}
       {props.kind === 'ground' ? <Ground /> : null}
+      {props.kind === 'cockcroftwalton' ? <CockcroftWaltonGlyph stages={Number(props.params['stages'] ?? 4)} active={props.active} profile={props.fx?.stageProfile} /> : null}
+      {props.kind === 'marx' ? <MarxGlyph stages={Number(props.params['stages'] ?? 10)} active={props.active} firing={props.fx?.firing ?? false} /> : null}
+      {props.kind === 'klystron' ? <KlystronGlyph active={props.active} /> : null}
+      {props.kind === 'linac' ? (
+        <LinacGlyph lengthsM={props.fx?.linac?.lengthsM ?? new Float64Array(0)} active={props.active} arcing={props.fx?.linac?.arcing ?? false} species={props.fx?.linac?.species ?? 'electron'} />
+      ) : null}
     </g>
   );
 }

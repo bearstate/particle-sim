@@ -11,6 +11,7 @@ import { VanDeGraaff3D } from './devices/VanDeGraaff3D.tsx';
 import { Tube3D } from './devices/Tube3D.tsx';
 import { Target3D, Ground3D } from './devices/Simple3D.tsx';
 import { Beam3D } from './fx/Beam3D.tsx';
+import { CockcroftWalton3D, Marx3D, Klystron3D, Linac3D } from './devices/Sources3D.tsx';
 
 /**
  * Sahne katmani: tezgah SVG'sinin ALTINDA, ayni piksel koordinatlarinda,
@@ -90,6 +91,13 @@ export function BenchScene(props: {
           }
           if (d.kind === 'target' && g) return <Target3D key={d.id} x={d.x} y={d.y} sol={g} />;
           if (d.kind === 'ground') return <Ground3D key={d.id} x={d.x} y={d.y} />;
+          const h = solution.hv[d.id];
+          if (d.kind === 'cockcroftwalton' && h) return <CockcroftWalton3D key={d.id} x={d.x} y={d.y} sol={h} stages={Number(d.params['stages'] ?? 4)} />;
+          if (d.kind === 'marx' && h) return <Marx3D key={d.id} x={d.x} y={d.y} sol={h} stages={Number(d.params['stages'] ?? 10)} reduce={reduce} />;
+          const k = solution.klystrons[d.id];
+          if (d.kind === 'klystron' && k) return <Klystron3D key={d.id} x={d.x} y={d.y} sol={k} />;
+          const l = solution.linacs[d.id];
+          if (d.kind === 'linac' && l) return <Linac3D key={d.id} x={d.x} y={d.y} sol={l} />;
           return null;
         })}
 

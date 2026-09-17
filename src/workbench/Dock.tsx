@@ -94,6 +94,45 @@ function Telemetry(props: { id: string; kind: string; solution: BenchSolution })
   const v = props.solution.vdgs[props.id];
   const tube = props.solution.tubes[props.id];
   const g = props.solution.targets[props.id];
+  const h = props.solution.hv[props.id];
+  const k = props.solution.klystrons[props.id];
+  const l = props.solution.linacs[props.id];
+
+  if (h) {
+    return (
+      <div className="readouts">
+        <Readout k={t('param.voltage')} v={`${si(h.voltageV, 2)}V`} tone={h.delivered ? 'neutron' : undefined} />
+        <Readout k="ideal" v={`${si(h.idealV, 2)}V`} />
+        <Readout k={h.kind === 'marx' ? 'η kaybı' : 'ΔV'} v={`${si(h.dropV, 2)}V`} tone={h.dropV > 0.2 * h.idealV ? 'hot' : undefined} />
+        <Readout k="I" v={`${si(h.loadCurrentA, 2)}A`} tone={h.loadCurrentA > 0 ? undefined : 'zero'} />
+        <Readout k={t('port.hv')} v={h.delivered ? t('vdg.delivered') : '—'} tone={h.delivered ? 'neutron' : 'zero'} />
+      </div>
+    );
+  }
+  if (k) {
+    return (
+      <div className="readouts">
+        <Readout k={t('param.rfPower')} v={`${si(k.rfPowerW, 2)}W`} />
+        <Readout k={t('port.rf')} v={k.delivered ? '→' : '—'} tone={k.delivered ? 'neutron' : 'zero'} />
+      </div>
+    );
+  }
+  if (l) {
+    return (
+      <>
+        <div className="readouts">
+          <Readout k="E" v={`${l.energyMeV.toFixed(2)} MeV`} tone={l.energyMeV > 0 ? 'neutron' : 'zero'} />
+          <Readout k="I" v={`${si(l.beamCurrentA, 2)}A`} tone={l.beamCurrentA > 0 ? undefined : 'zero'} />
+          <Readout k="P" v={`${si(l.beamPowerW, 2)}W`} />
+          <Readout k="RF" v={`${si(l.rfPowerW, 2)}W`} tone={l.powered ? undefined : 'zero'} />
+          <Readout k="E/L" v={`${l.gradientMVPerM.toFixed(2)} MV/m`} tone={l.arcing ? 'hot' : undefined} />
+          <Readout k="Kilpatrick" v={`${l.kilpatrickMVPerM.toFixed(1)} MV/m`} />
+        </div>
+        {!l.powered ? <p className="note">{t('linac.noRf')}</p> : null}
+        {l.arcing ? <p className="note">{t('linac.kilpatrick')}</p> : null}
+      </>
+    );
+  }
 
   if (v) {
     return (

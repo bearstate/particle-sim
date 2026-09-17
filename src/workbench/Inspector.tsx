@@ -22,7 +22,7 @@ export function Inspector(props: { solution: BenchSolution }) {
     ? 'idle'
     : target.incoming === 'electrons'
       ? (target.aboveThreshold ? 'above' : 'below')
-      : target.incoming === 'neutrons' ? 'neutrons' : 'photons';
+      : target.incoming === 'neutrons' ? 'neutrons' : target.incoming === 'protons' ? 'protons' : 'photons';
 
   useEffect(() => setLast(null), [selected?.id, mode]);
   const onAct = useCallback((info: ActInfo) => setLast(info), []);
@@ -49,11 +49,12 @@ export function Inspector(props: { solution: BenchSolution }) {
       if (mode === 'below') return t('event.below_threshold');
       if (mode === 'neutrons' && target.product) return t('event.now', { label: nuclideLabel(target.product) });
       if (mode === 'photons') return t('event.photons_pass');
+      if (mode === 'protons') return t('event.proton_heat');
       return '';
     }
     if (!last) return '';
     switch (last.act) {
-      case 'scatter': return t('event.scatter');
+      case 'scatter': return mode === 'protons' ? t('event.proton_heat') : t('event.scatter');
       case 'brems': return last.phase === 'photon' || last.phase === 'done' ? t('event.photon') : t('event.electron_arrives');
       case 'photoneutron':
         if (last.phase === 'start') return t('event.electron_arrives');

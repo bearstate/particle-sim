@@ -59,6 +59,7 @@ void main() {
 
 const STYLE: Record<BeamSegment['kind'], { color: THREE.Color; count: number; speed: number; jitter: number; size: number; streak: number }> = {
   electron: { color: new THREE.Color(1.6, 2.2, 2.8), count: 16, speed: 210, jitter: 2.2, size: 5, streak: 0 },
+  proton: { color: new THREE.Color(2.8, 1.6, 1.0), count: 14, speed: 170, jitter: 1.4, size: 7, streak: 0 },
   xray: { color: new THREE.Color(1.6, 1.1, 2.6), count: 10, speed: 520, jitter: 1, size: 9, streak: 1 },
   neutron: { color: new THREE.Color(1.3, 1.5, 1.6), count: 14, speed: 110, jitter: 1.5, size: 7, streak: 0 },
 };

@@ -22,13 +22,19 @@
     "target_any": "Hedef",
     "target_be": "Hedef (Be)",
     "target_th": "Toryum battaniyesi",
-    "ground": "Toprak"
+    "ground": "Toprak",
+    "cockcroftwalton": "Cockcroft–Walton",
+    "marx": "Marx jeneratörü",
+    "klystron": "RF üreteci (klistron)",
+    "linac": "Doğrusal hızlandırıcı"
   },
   "port": {
     "hv": "Yüksek gerilim",
     "ground": "Toprak",
     "anode": "Anot",
-    "cathode": "Katot"
+    "cathode": "Katot",
+    "rf": "RF gücü",
+    "rf_in": "RF girişi"
   },
   "param": {
     "voltage": "Terminal gerilimi",
@@ -38,7 +44,17 @@
     "element": "Element",
     "cathodeElement": "Katot malzemesi",
     "anodeElement": "Anot malzemesi",
-    "thickness": "Kalınlık"
+    "thickness": "Kalınlık",
+    "stages": "Kademe sayısı",
+    "inputPeakV": "Besleme tepe gerilimi",
+    "frequency": "Frekans",
+    "capacitance": "Kademe kapasitansı",
+    "stageVoltage": "Kademe şarj gerilimi",
+    "rfPower": "RF gücü",
+    "gapVoltage": "Boşluk gerilimi",
+    "gapCount": "Boşluk sayısı",
+    "mode": "Yapı",
+    "particle": "Parçacık"
   },
   "gas": {
     "vacuum": "Yüksek vakum",
@@ -73,7 +89,8 @@
     "now": "artık {{label}}",
     "scatter": "Elektron saçıldı, foton çıkmadı",
     "photons_pass": "X-ışını fotonları geçiyor; çekirdek etkilenmiyor",
-    "recoil": "Çekirdek geri tepti"
+    "recoil": "Çekirdek geri tepti",
+    "proton_heat": "Protonlar hedefi ısıtıyor; bu enerjide fotonötron yok"
   },
   "isotope": {
     "protium": "protyum",
@@ -153,6 +170,15 @@
     "electrons": "elektron",
     "neutrons": "nötron",
     "photons": "X-ışını",
-    "none": "—"
+    "none": "—",
+    "protons": "proton"
+  },
+  "linac": {
+    "wideroe": "Wideröe",
+    "alvarez": "Alvarez",
+    "electron": "elektron",
+    "proton": "proton",
+    "noRf": "RF gücü yok: klistronu bağla",
+    "kilpatrick": "Kilpatrick sınırı aşıldı: boşluklarda ark"
   }
 }
