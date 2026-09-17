@@ -42,7 +42,7 @@ export function buildMatrix(nodes: readonly ChainNode[]): Float64Array {
     a[j * n + j] = -node.lambda;
     for (const b of node.branches) {
       if (b.to >= 0 && b.to < n) {
-        a[b.to * n + j] += node.lambda * b.fraction;
+        a[b.to * n + j] = a[b.to * n + j]! + node.lambda * b.fraction;
       }
     }
   }
@@ -81,9 +81,10 @@ function infNorm(a: Float64Array, n: number): number {
 }
 
 /**
- * Matris usteli e^(A*t), olcekle-ve-kare-al + 6. derece Taylor.
+ * Matris usteli e^(A*t), olcekle-ve-kare-al + 13. mertebe Taylor.
  * Zincir matrisleri kucuk ve alt-ikikosegen oldugu icin Taylor yeterli;
- * olcekleme ||A*t/2^s|| <= 0.5 garantisi verir.
+ * olcekleme ||A*t/2^s|| <= 0.25 garantisi verir; bu mertebede
+ * kesme hatasi float64 epsilon'un altinda kalir.
  */
 export function expm(a: Float64Array, n: number, tS: number): Float64Array {
   if (n === 0) return new Float64Array(0);
@@ -92,16 +93,16 @@ export function expm(a: Float64Array, n: number, tS: number): Float64Array {
 
   const norm = infNorm(scaled, n);
   let s = 0;
-  if (norm > 0.5) s = Math.ceil(Math.log2(norm / 0.5));
+  if (norm > 0.25) s = Math.ceil(Math.log2(norm / 0.25));
   if (s > 0) {
     const f = Math.pow(2, -s);
     for (let i = 0; i < scaled.length; i++) scaled[i]! *= f;
   }
 
-  // Taylor: I + X + X^2/2! + ... + X^9/9!
+  // Taylor: I + X + X^2/2! + ... + X^13/13!
   let result = identity(n);
   let term = identity(n);
-  for (let k = 1; k <= 9; k++) {
+  for (let k = 1; k <= 13; k++) {
     term = matmul(term, scaled, n);
     for (let i = 0; i < term.length; i++) term[i]! /= k;
     for (let i = 0; i < result.length; i++) result[i]! += term[i]!;

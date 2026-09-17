@@ -14,21 +14,24 @@ import {
   ELECTRON_MASS_MEV,
   PROTON_MASS_MEV,
   NEUTRON_MASS_MEV,
+  DEUTERON_MASS_MEV,
   ALPHA_MASS_MEV,
   HBAR,
   MEV_TO_J,
   HC_EV_NM,
 } from './constants.ts';
-import type { ParticleKind } from './types.ts';
+import type { ParticleSpecies } from './types.ts';
 
 /** Durgun enerji, MeV. Foton 0 dondurur. */
-export function restEnergyMeV(kind: ParticleKind): number {
+export function restEnergyMeV(kind: ParticleSpecies): number {
   switch (kind) {
     case 'electron':
     case 'positron':
       return ELECTRON_MASS_MEV;
     case 'proton':
       return PROTON_MASS_MEV;
+    case 'deuteron':
+      return DEUTERON_MASS_MEV;
     case 'neutron':
       return NEUTRON_MASS_MEV;
     case 'alpha':
@@ -42,12 +45,13 @@ export function restEnergyMeV(kind: ParticleKind): number {
 }
 
 /** Yuk sayisi z. Iyon icin cagiran taraf belirler. */
-export function chargeNumber(kind: ParticleKind): number {
+export function chargeNumber(kind: ParticleSpecies): number {
   switch (kind) {
     case 'electron':
       return -1;
     case 'positron':
     case 'proton':
+    case 'deuteron':
       return 1;
     case 'alpha':
       return 2;

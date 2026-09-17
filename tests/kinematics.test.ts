@@ -23,9 +23,9 @@ describe('rolativistik kinematik', () => {
   it('250 MeV proton referans degerlerini tutturur', () => {
     const t = 250;
     const e0 = PROTON_MASS_MEV;
-    expect(gamma(t, e0)).toBeCloseTo(1.2664582, 6);
+    expect(gamma(t, e0)).toBeCloseTo(1.2664472, 6);
     expect(momentumMeV(t, e0)).toBeCloseTo(729.1338, 3);
-    expect(beta(t, e0)).toBeCloseTo(0.6136077, 6);
+    expect(beta(t, e0)).toBeCloseTo(0.6136084, 6);
   });
 
   it('cok dusuk enerjide beta sadelesme kaybina girmez', () => {

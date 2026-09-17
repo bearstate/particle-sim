@@ -34,9 +34,11 @@ describe('dozimetri', () => {
     expect(neutronWeightingFactor(1)).toBeGreaterThan(neutronWeightingFactor(100));
   });
 
-  it('w_R parcalari sinirlarda sureklidir', () => {
-    expect(neutronWeightingFactor(0.999999)).toBeCloseTo(neutronWeightingFactor(1.000001), 3);
-    expect(neutronWeightingFactor(49.99999)).toBeCloseTo(neutronWeightingFactor(50.00001), 3);
+  it('w_R parcalari sinirlarda neredeyse sureklidir', () => {
+    // ICRP 103'un yayimlanmis parcali fonksiyonu 1 MeV'de ~0.008, 50 MeV'de
+    // ~0.004 siciar. Bu kaynagin kendisinde vardir, bizim hatamiz degil.
+    expect(Math.abs(neutronWeightingFactor(0.999999) - neutronWeightingFactor(1.000001))).toBeLessThan(0.01);
+    expect(Math.abs(neutronWeightingFactor(49.99999) - neutronWeightingFactor(50.00001))).toBeLessThan(0.01);
   });
 
   it('tur bazli w_R degerleri ICRP 103 ile uyumlu', () => {

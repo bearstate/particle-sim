@@ -65,7 +65,7 @@ export function equilibriumTempK(body: ThermalBody, inputPowerW: number): number
   if (inputPowerW <= 0) return body.ambientTempK;
   let lo = body.ambientTempK;
   let hi = 20000;
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 60; i++) {
     const mid = 0.5 * (lo + hi);
     if (lossPowerW(body, mid) < inputPowerW) lo = mid;
     else hi = mid;
@@ -117,8 +117,16 @@ export function step(
   let next: number;
   if (dLossdT > 0) {
     const tau = heatCapacity / dLossdT;
-    const tEq = tempK + netAtT / dLossdT;
-    next = tEq + (tempK - tEq) * Math.exp(-dtS / tau);
+    // Dogrusallastirilmis hedef: kucuk dt'de isinma hizini (netP/C) tam verir.
+    const tEqLinear = tempK + netAtT / dLossdT;
+    next = tEqLinear + (tempK - tEqLinear) * Math.exp(-dtS / tau);
+
+    // ...ama buyuk dt'de oraya kadar gidemez: T^4 dogrusal degildir, gercek
+    // denge cok daha asagidadir. Asmayi engelle, yoksa dt buyudukce sicaklik
+    // uydurma degerlere firlar.
+    const tEqTrue = equilibriumTempK(body, inputPowerW);
+    if (netAtT > 0) next = Math.min(next, tEqTrue);
+    else if (netAtT < 0) next = Math.max(next, tEqTrue);
   } else {
     next = tempK + (netAtT * dtS) / heatCapacity;
   }

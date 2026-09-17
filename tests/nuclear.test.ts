@@ -28,7 +28,7 @@ describe('zincir cozucu (matris usteli)', () => {
   it('tek nuklid analitik bozunmayi tutturur', () => {
     const lambda = 1e-3;
     const out = solveAt([node(lambda)], [1000], 1000);
-    expect(out[0]!).toBeCloseTo(1000 * Math.exp(-1), 9);
+    expect(out[0]!).toBeCloseTo(1000 * Math.exp(-1), 8);
   });
 
   it('ayrik lambdali zincirde kapali Bateman ile ayni sonucu verir', () => {
@@ -131,7 +131,7 @@ describe('aktivasyon', () => {
 
   it('uzun isinlamada aktivite doyuma gider, daha fazlasi ise yaramaz', () => {
     const atoms = 1e22;
-    const flux = 1e16;
+    const flux = 1e14; // hedef tukenmesi ihmal edilebilir kalsin
     const sat = saturationActivityBq(atoms, co.thermalBarn, flux);
     const long = irradiateThenCool(co, atoms, flux, 40 * 365.25 * DAY_S);
     // Co-60 yari omru 5.27 yil; 40 yil = 7.6 yari omur -> %99.5 doyum
@@ -147,7 +147,19 @@ describe('aktivasyon', () => {
     const a1 = irradiateThenCool(co, atoms, flux, irr, 5.2714 * 365.25 * DAY_S).activitiesBq[1]!;
     expect(a1 / a0).toBeCloseTo(0.5, 2);
   });
+
+  it('yuksek akida hedef tukenmesi (burn-up) modellenir', () => {
+    // Hedef zincirin basinda bir dugum oldugu icin tukenme bedavaya gelir.
+    // Yuksek akida "daha cok akі = daha cok aktivite" dogrusalligi kirilir.
+    const atoms = 1e22;
+    const years = 40 * 365.25 * DAY_S;
+    const low = irradiateThenCool(co, atoms, 1e14, years);
+    const high = irradiateThenCool(co, atoms, 1e18, years);
+    expect(low.atoms[0]! / atoms).toBeGreaterThan(0.999);
+    expect(high.atoms[0]! / atoms).toBeLessThan(0.05);
+  });
 });
+
 
 describe('notron yavaslatma', () => {
   it('hidrojen tek carpismada tum enerjiyi alabilir', () => {

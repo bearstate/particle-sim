@@ -62,8 +62,8 @@ describe('Paschen yasasi', () => {
   it('SF6 delinme alani basincla dogrusal (~89 kV/cm/bar)', () => {
     const gap = 0.01;
     const v = breakdownVoltageV('sf6', 1e5, gap);
-    // kV/cm cinsinden
-    expect(v / gap / 1e5 / 100 / 10).toBeCloseTo(0.89, 1);
+    // 1 kV/cm = 1e5 V/m
+    expect(v / gap / 1e5).toBeCloseTo(88.9, 0);
   });
 
   it('Townsend alfa alanla artar, basincla doyar', () => {
@@ -98,6 +98,6 @@ describe('korona ve ark', () => {
   });
 
   it('depolanan enerji 0.5 C V^2', () => {
-    expect(storedEnergyJ(1e-9, 1e5)).toBeCloseTo(0.005, 9);
+    expect(storedEnergyJ(1e-9, 1e5)).toBeCloseTo(5, 9);
   });
 });
