@@ -1,0 +1,92 @@
+{
+  "app": {
+    "title": "Particle Acceleration Simulator",
+    "workbench": "Workbench",
+    "verify": "Verification panel",
+    "disclaimer": "For education only. Not for radiation protection, clinical dosimetry or shielding design."
+  },
+  "lang": { "tr": "TR", "en": "EN" },
+  "palette": {
+    "title": "Devices",
+    "hint": "Drag onto the bench, wire the ports, select to adjust below.",
+    "clear": "Clear bench"
+  },
+  "device": {
+    "vandegraaff": "Van de Graaff",
+    "tube": "Vacuum tube",
+    "target": "Target (W)",
+    "target_any": "Target",
+    "target_be": "Target (Be)",
+    "target_th": "Thorium blanket",
+    "ground": "Ground"
+  },
+  "port": {
+    "hv": "High voltage",
+    "ground": "Ground",
+    "anode": "Anode",
+    "cathode": "Cathode",
+    "beam_out": "Beam out",
+    "beam_in": "Beam in"
+  },
+  "param": {
+    "voltage": "Terminal voltage",
+    "radius": "Sphere radius",
+    "gas": "Fill gas",
+    "pressure": "Pressure",
+    "element": "Element",
+    "cathodeElement": "Cathode material",
+    "anodeElement": "Anode material",
+    "thickness": "Thickness"
+  },
+  "gas": {
+    "vacuum": "High vacuum",
+    "air": "Air",
+    "n2": "Nitrogen",
+    "ar": "Argon",
+    "ne": "Neon",
+    "he": "Helium",
+    "sf6": "SF₆",
+    "co2": "CO₂"
+  },
+  "dock": {
+    "empty": "Select a device; its controls appear here.",
+    "remove": "Remove",
+    "wires": "Connections"
+  },
+  "inspector": {
+    "title": "Micro view",
+    "empty": "Select a target to see its atom here.",
+    "protons": "protons",
+    "neutrons": "neutrons",
+    "electrons": "electrons",
+    "shell": "shell"
+  },
+  "event": {
+    "electron_arrives": "Electron arrives",
+    "photon": "Bremsstrahlung photon emitted",
+    "gdr": "Nucleus enters giant dipole resonance",
+    "neutron_out": "Neutron ejected",
+    "below_threshold": "Below threshold: photon emitted, nucleus keeps its neutrons",
+    "capture": "Neutron captured",
+    "now": "now {{label}}"
+  },
+  "isotope": {
+    "protium": "protium",
+    "deuterium": "deuterium",
+    "tritium": "tritium"
+  },
+  "element": {
+    "H": "Hydrogen", "He": "Helium", "Li": "Lithium", "Be": "Beryllium", "B": "Boron",
+    "C": "Carbon", "N": "Nitrogen", "O": "Oxygen", "Ne": "Neon", "Na": "Sodium",
+    "Mg": "Magnesium", "Al": "Aluminium", "Si": "Silicon", "S": "Sulfur", "Ar": "Argon",
+    "K": "Potassium", "Ca": "Calcium", "Ti": "Titanium", "V": "Vanadium", "Cr": "Chromium",
+    "Mn": "Manganese", "Fe": "Iron", "Co": "Cobalt", "Ni": "Nickel", "Cu": "Copper",
+    "Zn": "Zinc", "Ga": "Gallium", "Ge": "Germanium", "Kr": "Krypton", "Sr": "Strontium",
+    "Zr": "Zirconium", "Nb": "Niobium", "Mo": "Molybdenum", "Ag": "Silver", "Cd": "Cadmium",
+    "In": "Indium", "Sn": "Tin", "Xe": "Xenon", "Cs": "Caesium", "Ba": "Barium",
+    "La": "Lanthanum", "Ta": "Tantalum", "W": "Tungsten", "Re": "Rhenium", "Ir": "Iridium",
+    "Pt": "Platinum", "Au": "Gold", "Hg": "Mercury", "Tl": "Thallium", "Pb": "Lead",
+    "Bi": "Bismuth", "Th": "Thorium", "Pa": "Protactinium", "U": "Uranium",
+    "Np": "Neptunium", "Pu": "Plutonium"
+  }
+}

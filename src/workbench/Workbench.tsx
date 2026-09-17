@@ -1,0 +1,91 @@
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useWorkbench } from './model.ts';
+import { solveBench } from './solve.ts';
+import { Palette } from './Palette.tsx';
+import { Canvas } from './Canvas.tsx';
+import { Dock } from './Dock.tsx';
+import { Inspector } from './Inspector.tsx';
+import { specOf, type PaletteEntry } from './catalog.ts';
+import { DeviceGlyph, GlyphDefs } from './DeviceGlyph.tsx';
+
+/**
+ * Tezgah duzeni: orta canvas, sagda palet + mikro gorunum, altta dock.
+ * Paletten yerlestirme burada: pointer olaylari pencere duzeyinde dinlenir,
+ * birakma noktasi canvas icindeyse cihaz eklenir.
+ */
+interface Placing {
+  entry: PaletteEntry;
+  x: number;
+  y: number;
+}
+
+export function Workbench() {
+  const devices = useWorkbench((s) => s.devices);
+  const wires = useWorkbench((s) => s.wires);
+  const addDevice = useWorkbench((s) => s.addDevice);
+  const solution = useMemo(() => solveBench(devices, wires), [devices, wires]);
+
+  const benchRef = useRef<HTMLDivElement | null>(null);
+  const [placing, setPlacing] = useState<Placing | null>(null);
+  const placingRef = useRef<Placing | null>(null);
+  placingRef.current = placing;
+
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      if (!placingRef.current) return;
+      setPlacing({ ...placingRef.current, x: e.clientX, y: e.clientY });
+    };
+    const up = (e: PointerEvent) => {
+      const p = placingRef.current;
+      if (!p) return;
+      setPlacing(null);
+      const r = benchRef.current?.getBoundingClientRect();
+      if (!r) return;
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+      const spec = specOf(p.entry.kind);
+      addDevice(
+        p.entry.kind,
+        Math.max(0, e.clientX - r.left - spec.w / 2),
+        Math.max(0, e.clientY - r.top - spec.h / 2),
+        { ...p.entry.defaults },
+      );
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+  }, [addDevice]);
+
+  const beginPlace = (entry: PaletteEntry, e: ReactPointerEvent) => {
+    setPlacing({ entry, x: e.clientX, y: e.clientY });
+  };
+
+  return (
+    <div className="bench-layout">
+      <div className="bench-main" ref={benchRef}>
+        <Canvas solution={solution} />
+      </div>
+      <div className="bench-side">
+        <Palette onBeginPlace={beginPlace} />
+        <Inspector solution={solution} />
+      </div>
+      <div className="bench-dock">
+        <Dock solution={solution} />
+      </div>
+
+      {placing ? (
+        <svg
+          className="ghost"
+          style={{ left: placing.x, top: placing.y }}
+          width={specOf(placing.entry.kind).w}
+          height={specOf(placing.entry.kind).h}
+        >
+          <GlyphDefs />
+          <DeviceGlyph kind={placing.entry.kind} params={placing.entry.defaults} selected={false} active={false} />
+        </svg>
+      ) : null}
+    </div>
+  );
+}

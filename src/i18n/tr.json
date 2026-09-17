@@ -1,0 +1,92 @@
+{
+  "app": {
+    "title": "Parçacık Hızlandırma Simülatörü",
+    "workbench": "Tezgâh",
+    "verify": "Doğrulama paneli",
+    "disclaimer": "Eğitim amaçlıdır. Radyasyon korunması, klinik dozimetri veya kalkan tasarımı için kullanılamaz."
+  },
+  "lang": { "tr": "TR", "en": "EN" },
+  "palette": {
+    "title": "Cihazlar",
+    "hint": "Tezgâha sürükle, portları kabloyla bağla, seçip alttan ayarla.",
+    "clear": "Tezgâhı temizle"
+  },
+  "device": {
+    "vandegraaff": "Van de Graaff",
+    "tube": "Vakum tüpü",
+    "target": "Hedef (W)",
+    "target_any": "Hedef",
+    "target_be": "Hedef (Be)",
+    "target_th": "Toryum battaniyesi",
+    "ground": "Toprak"
+  },
+  "port": {
+    "hv": "Yüksek gerilim",
+    "ground": "Toprak",
+    "anode": "Anot",
+    "cathode": "Katot",
+    "beam_out": "Demet çıkışı",
+    "beam_in": "Demet girişi"
+  },
+  "param": {
+    "voltage": "Terminal gerilimi",
+    "radius": "Küre yarıçapı",
+    "gas": "Ortam gazı",
+    "pressure": "Basınç",
+    "element": "Element",
+    "cathodeElement": "Katot malzemesi",
+    "anodeElement": "Anot malzemesi",
+    "thickness": "Kalınlık"
+  },
+  "gas": {
+    "vacuum": "Yüksek vakum",
+    "air": "Hava",
+    "n2": "Azot",
+    "ar": "Argon",
+    "ne": "Neon",
+    "he": "Helyum",
+    "sf6": "SF₆",
+    "co2": "CO₂"
+  },
+  "dock": {
+    "empty": "Bir cihaz seç; kontrolleri burada belirir.",
+    "remove": "Kaldır",
+    "wires": "Bağlantılar"
+  },
+  "inspector": {
+    "title": "Mikro görünüm",
+    "empty": "Bir hedef seçince atomu burada görünür.",
+    "protons": "proton",
+    "neutrons": "nötron",
+    "electrons": "elektron",
+    "shell": "kabuk"
+  },
+  "event": {
+    "electron_arrives": "Elektron geliyor",
+    "photon": "Fren fotonu çıktı",
+    "gdr": "Çekirdek rezonansa girdi",
+    "neutron_out": "Nötron koptu",
+    "below_threshold": "Eşik altı: foton çıktı, çekirdek nötron vermedi",
+    "capture": "Nötron yakalandı",
+    "now": "artık {{label}}"
+  },
+  "isotope": {
+    "protium": "protyum",
+    "deuterium": "döteryum",
+    "tritium": "trityum"
+  },
+  "element": {
+    "H": "Hidrojen", "He": "Helyum", "Li": "Lityum", "Be": "Berilyum", "B": "Bor",
+    "C": "Karbon", "N": "Azot", "O": "Oksijen", "Ne": "Neon", "Na": "Sodyum",
+    "Mg": "Magnezyum", "Al": "Alüminyum", "Si": "Silisyum", "S": "Kükürt", "Ar": "Argon",
+    "K": "Potasyum", "Ca": "Kalsiyum", "Ti": "Titanyum", "V": "Vanadyum", "Cr": "Krom",
+    "Mn": "Mangan", "Fe": "Demir", "Co": "Kobalt", "Ni": "Nikel", "Cu": "Bakır",
+    "Zn": "Çinko", "Ga": "Galyum", "Ge": "Germanyum", "Kr": "Kripton", "Sr": "Stronsiyum",
+    "Zr": "Zirkonyum", "Nb": "Niyobyum", "Mo": "Molibden", "Ag": "Gümüş", "Cd": "Kadmiyum",
+    "In": "İndiyum", "Sn": "Kalay", "Xe": "Ksenon", "Cs": "Sezyum", "Ba": "Baryum",
+    "La": "Lantan", "Ta": "Tantal", "W": "Tungsten", "Re": "Renyum", "Ir": "İridyum",
+    "Pt": "Platin", "Au": "Altın", "Hg": "Cıva", "Tl": "Talyum", "Pb": "Kurşun",
+    "Bi": "Bizmut", "Th": "Toryum", "Pa": "Protaktinyum", "U": "Uranyum",
+    "Np": "Neptünyum", "Pu": "Plütonyum"
+  }
+}

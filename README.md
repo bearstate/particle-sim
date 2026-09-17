@@ -17,9 +17,15 @@ ikincil ışınım, nükleer dönüşüm ve biyolojik etki.
 
 ## Durum
 
-Aşama 1 (fizik çekirdeği) yazıldı. `src/physics/` saf TypeScript'tir: React,
-three.js veya DOM bilmez, Node'da test edilir, tarayıcıda Web Worker içinde
-koşar. `tests/purity.test.ts` bu sınırı bekçi test olarak korur.
+- **Aşama 1 — fizik çekirdeği:** `src/physics/` saf TypeScript'tir: React,
+  three.js veya DOM bilmez, Node'da test edilir, tarayıcıda Web Worker içinde
+  koşar. `tests/purity.test.ts` bu sınırı bekçi test olarak korur.
+- **Aşama 2 — tezgâh (şematik katman):** PhET tarzı sürükle-bırak palet,
+  tipli portlar arasında kablolama, seçili cihaz için otomatik üretilen
+  kontrol dock'u, Bohr modelli mikro görünüm ve nüklid etiketleme
+  (`Be-9 → Be-8`, `Th-232 → Th-233`). Tasarım: `docs/DESIGN.md`.
+- Sırada: three.js sahne katmanı (sabit kamera, bloom, demet parçacıkları,
+  ark), LINAC/siklotron/Marx/Cockcroft–Walton cihazları.
 
 ## Kurulum
 
