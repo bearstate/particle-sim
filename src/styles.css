@@ -282,3 +282,14 @@ svg.atom { display: block; margin: 0 auto; }
 @media (prefers-reduced-motion: reduce) {
   .bp-move, .bp-jit, .striations { animation: none; }
 }
+
+/* ===== 3D sahne katmani ===== */
+.scene-canvas { position: absolute; inset: 0; pointer-events: none; }
+.scene-canvas canvas { display: block; width: 100% !important; height: 100% !important; }
+.bench-main > svg.bench { position: relative; z-index: 1; }
+.scene-toggle {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); border-radius: 6px;
+  padding: 3px 9px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.scene-toggle.on { color: var(--accent); border-color: var(--accent); }

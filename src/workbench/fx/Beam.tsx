@@ -33,9 +33,9 @@ interface ParticleStyle extends CSSProperties {
 }
 
 const STYLE: Record<BeamSegment['kind'], { color: string; r: number; count: number; speedPxPerS: number; jitter: number; glow: string }> = {
-  electron: { color: '#dff3ff', r: 1.7, count: 34, speedPxPerS: 520, jitter: 3.5, glow: 'rgba(143,211,255,0.16)' },
-  xray: { color: '#c9a6ff', r: 1.2, count: 14, speedPxPerS: 900, jitter: 1, glow: 'rgba(185,140,255,0.10)' },
-  neutron: { color: '#b8c0cc', r: 2.6, count: 16, speedPxPerS: 140, jitter: 1.5, glow: 'rgba(70,214,196,0.10)' },
+  electron: { color: '#dff3ff', r: 1.6, count: 14, speedPxPerS: 210, jitter: 2.2, glow: 'rgba(143,211,255,0.14)' },
+  xray: { color: '#c9a6ff', r: 1.2, count: 9, speedPxPerS: 520, jitter: 1, glow: 'rgba(185,140,255,0.10)' },
+  neutron: { color: '#b8c0cc', r: 2.6, count: 12, speedPxPerS: 110, jitter: 1.5, glow: 'rgba(70,214,196,0.10)' },
 };
 
 export function BeamParticles(props: { segment: BeamSegment; reduce: boolean }) {

@@ -11,6 +11,8 @@ import { productionEfficiency } from '../physics/interaction/bremsstrahlung.ts';
 import { naturalThresholdMeV, thickTargetNeutronYieldPerS } from '../physics/interaction/photoneutron.ts';
 import { elementBySymbol, type Element } from '../physics/data/elements.ts';
 import { mostAbundantA, afterNeutronEmission, afterNeutronCapture, type NuclideId } from '../physics/data/nuclides.ts';
+import { densityKgPerM3 } from '../physics/data/elements.ts';
+import { equilibriumTempK, type ThermalBody } from '../physics/thermal/heat.ts';
 
 /**
  * Tezgah topolojisinden fizik durumu turetir. Saf fonksiyon.
@@ -64,6 +66,8 @@ export interface TargetSolution {
   readonly neutronYieldPerS: number;
   readonly xrayEfficiency: number;
   readonly heatW: number;
+  /** Denge sicakligi, K (1x2 cm levha, isima + tutucu iletimi). */
+  readonly tempK: number;
   readonly product: NuclideId | null;
   readonly event: 'photoneutron' | 'below_threshold' | 'capture' | 'photons' | null;
 }
@@ -230,7 +234,23 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
     if (incoming === 'electrons') { event = aboveThreshold ? 'photoneutron' : 'below_threshold'; product = aboveThreshold ? afterNeutronEmission(nuclide) : null; }
     else if (incoming === 'neutrons') { event = 'capture'; product = afterNeutronCapture(nuclide); }
     else if (incoming === 'photons') event = 'photons';
-    return { element, nuclide, incoming, sourceId, electronEnergyMeV, beamPowerW, thresholdMeV, aboveThreshold, neutronYieldPerS, xrayEfficiency, heatW: beamPowerW * (1 - xrayEfficiency), product, event };
+    const heatW = beamPowerW * (1 - xrayEfficiency);
+    const thicknessM = num(d.params['thickness'], 2) * 1e-3;
+    const faceM2 = 0.01 * 0.02;
+    const body: ThermalBody = {
+      massKg: densityKgPerM3(element) * faceM2 * thicknessM,
+      specificHeatJPerKgK: element.specificHeatJPerKgK,
+      surfaceAreaM2: 2 * faceM2 + 2 * (0.01 + 0.02) * thicknessM,
+      emissivity: 0.35,
+      conductanceWPerK: 0.05,
+      ambientTempK: 293.15,
+      meltingPointK: element.meltingPointK,
+      boilingPointK: element.boilingPointK,
+      latentHeatFusionJPerKg: element.latentHeatFusionKJPerKg * 1000,
+      latentHeatVaporJPerKg: element.latentHeatVaporKJPerKg * 1000,
+    };
+    const tempK = heatW > 0 ? Math.min(equilibriumTempK(body, heatW), element.meltingPointK) : 293.15;
+    return { element, nuclide, incoming, sourceId, electronEnergyMeV, beamPowerW, thresholdMeV, aboveThreshold, neutronYieldPerS, xrayEfficiency, heatW, tempK, product, event };
   };
 
   const secondary = new Map<string, { kind: 'neutrons' | 'photons'; from: string }>();

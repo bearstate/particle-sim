@@ -18,7 +18,8 @@ const PORT_COLOR: Record<PortKind, string> = { hv: '#ff8a3d', ground: '#9aa3b5',
 interface DragState { id: string; dx: number; dy: number }
 interface WireDrag { from: PortRef; kind: PortKind; x0: number; y0: number; x: number; y: number }
 
-export function Canvas(props: { solution: BenchSolution }) {
+export function Canvas(props: { solution: BenchSolution; flat?: boolean }) {
+  const flat = props.flat ?? false;
   const devices = useWorkbench((s) => s.devices);
   const wires = useWorkbench((s) => s.wires);
   const selectedId = useWorkbench((s) => s.selectedId);
@@ -103,8 +104,7 @@ export function Canvas(props: { solution: BenchSolution }) {
       </defs>
       <rect width="100%" height="100%" fill="url(#grid)" />
 
-      {/* demet, X-isini ve notron akislari (cihazlarin altinda kalsin) */}
-      <BeamLayer segments={props.solution.beams} reduce={reduce} />
+      {flat ? <BeamLayer segments={props.solution.beams} reduce={reduce} /> : null}
 
       {wires.map((w) => {
         const a = portPos(w.from);
@@ -133,8 +133,18 @@ export function Canvas(props: { solution: BenchSolution }) {
         const radiusPx = d.kind === 'vandegraaff' ? sphereRadiusPx(typeof d.params['radius'] === 'number' ? (d.params['radius'] as number) : 0.15) : 0;
         return (
           <g key={d.id} transform={`translate(${d.x} ${d.y})`} onPointerDown={(e) => onDevicePointerDown(e, d.id)} style={{ cursor: drag?.id === d.id ? 'grabbing' : 'grab' }}>
-            <DeviceGlyph kind={d.kind} params={d.params} selected={selectedId === d.id} active={active} heat={heat} fx={fx} />
-            {v ? (
+            {flat ? (
+              <DeviceGlyph kind={d.kind} params={d.params} selected={selectedId === d.id} active={active} heat={heat} fx={fx} />
+            ) : (
+              <g>
+                {selectedId === d.id ? <rect x={-6} y={-6} width={spec.w + 12} height={spec.h + 12} rx={10} fill="none" stroke="#4da3ff" strokeDasharray="4 4" /> : null}
+                <rect x={0} y={0} width={spec.w} height={spec.h} fill="transparent" />
+                {d.kind === 'target' ? <text x={48} y={54} fill="#eef2f8" fontSize={16} fontWeight={600} textAnchor="middle" fontFamily="system-ui, sans-serif" pointerEvents="none">{String(d.params['element'] ?? 'W')}</text> : null}
+                {d.kind === 'vandegraaff' ? <text x={60} y={VDG_SPHERE.cy + radiusPx + 14} fill="#868fa1" fontSize={9} textAnchor="middle" fontFamily="ui-monospace, monospace" pointerEvents="none">R {((typeof d.params['radius'] === 'number' ? (d.params['radius'] as number) : 0.15) * 100).toFixed(0)} cm</text> : null}
+              </g>
+            )}
+            {v && flat ? (
+
               <SparkLayer cx={VDG_SPHERE.cx} cy={VDG_SPHERE.cy} radiusPx={radiusPx} lengthPx={v.sparkM * PX_PER_M} ratePerS={v.arcRatePerS} reduce={reduce} />
             ) : null}
             {spec.ports.map((p) => {

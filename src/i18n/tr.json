@@ -3,7 +3,8 @@
     "title": "Parçacık Hızlandırma Simülatörü",
     "workbench": "Tezgâh",
     "verify": "Doğrulama paneli",
-    "disclaimer": "Eğitim amaçlıdır. Radyasyon korunması, klinik dozimetri veya kalkan tasarımı için kullanılamaz."
+    "disclaimer": "Eğitim amaçlıdır. Radyasyon korunması, klinik dozimetri veya kalkan tasarımı için kullanılamaz.",
+    "scene3d": "3D sahneyi aç/kapat"
   },
   "lang": {
     "tr": "TR",

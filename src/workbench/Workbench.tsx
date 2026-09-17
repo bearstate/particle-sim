@@ -7,6 +7,9 @@ import { Dock } from './Dock.tsx';
 import { Inspector } from './Inspector.tsx';
 import { specOf, type PaletteEntry } from './catalog.ts';
 import { DeviceGlyph, GlyphDefs } from './DeviceGlyph.tsx';
+import { BenchScene } from '../scene/BenchScene.tsx';
+import { useReducedMotion } from '../ui/useReducedMotion.ts';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Tezgah duzeni: orta canvas, sagda palet + mikro gorunum, altta dock.
@@ -24,6 +27,20 @@ export function Workbench() {
   const wires = useWorkbench((s) => s.wires);
   const addDevice = useWorkbench((s) => s.addDevice);
   const solution = useMemo(() => solveBench(devices, wires), [devices, wires]);
+  const reduce = useReducedMotion();
+  const { t } = useTranslation();
+  const [scene3d, setScene3d] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('scene3d') !== 'off' && !!document.createElement('canvas').getContext('webgl2');
+    } catch {
+      return false;
+    }
+  });
+  const toggle3d = () =>
+    setScene3d((v) => {
+      try { localStorage.setItem('scene3d', v ? 'off' : 'on'); } catch { /* yok say */ }
+      return !v;
+    });
 
   const benchRef = useRef<HTMLDivElement | null>(null);
   const [placing, setPlacing] = useState<Placing | null>(null);
@@ -65,7 +82,11 @@ export function Workbench() {
   return (
     <div className="bench-layout">
       <div className="bench-main" ref={benchRef}>
-        <Canvas solution={solution} />
+        {scene3d ? <BenchScene devices={devices} solution={solution} reduce={reduce} /> : null}
+        <Canvas solution={solution} flat={!scene3d} />
+        <button type="button" className={`scene-toggle ${scene3d ? 'on' : ''}`} onClick={toggle3d} title={t('app.scene3d')}>
+          3D
+        </button>
       </div>
       <div className="bench-side">
         <Palette onBeginPlace={beginPlace} />

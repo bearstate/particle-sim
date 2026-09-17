@@ -6,6 +6,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    // Tek React, tek three: r3f/drei ile cift kopya "invalid hook call" uretir.
+    dedupe: ['react', 'react-dom', 'three'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing', 'postprocessing'],
   },
   server: {
     // OneDrive'da yerel izleyici degisiklikleri kaciriyor; polling guvenilir.

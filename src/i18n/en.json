@@ -3,7 +3,8 @@
     "title": "Particle Acceleration Simulator",
     "workbench": "Workbench",
     "verify": "Verification panel",
-    "disclaimer": "For education only. Not for radiation protection, clinical dosimetry or shielding design."
+    "disclaimer": "For education only. Not for radiation protection, clinical dosimetry or shielding design.",
+    "scene3d": "Toggle 3D scene"
   },
   "lang": {
     "tr": "TR",
