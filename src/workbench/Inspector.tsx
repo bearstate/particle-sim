@@ -8,6 +8,7 @@ import { si } from '../ui/Controls.tsx';
 import { useReducedMotion } from '../ui/useReducedMotion.ts';
 import { useClock, formatSimTime } from './clock.ts';
 import { computeInventory } from './inventory.ts';
+import { CellView } from './CellView.tsx';
 import { formatHalfLife } from '../physics/nuclear/decay.ts';
 
 /**
@@ -70,6 +71,22 @@ export function Inspector(props: { solution: BenchSolution }) {
 
   useEffect(() => setLast(null), [selected?.id, mode]);
   const onAct = useCallback((info: ActInfo) => setLast(info), []);
+
+  const cell = selected ? props.solution.cells[selected.id] : undefined;
+  if (selected && cell) {
+    const tissueKey = (typeof selected.params['tissue'] === 'string' ? selected.params['tissue'] : 'earlyResponding') as 'earlyResponding' | 'lateResponding' | 'radioresistant';
+    const tissueLabel = tissueKey === 'earlyResponding' ? 'early' : tissueKey === 'lateResponding' ? 'late' : 'resistant';
+    return (
+      <aside className="inspector">
+        <h2>{t('cell.title')}</h2>
+        <div className="inspector-head">
+          <span className="nuclide">{t(`tissue.${tissueLabel}`)}</span>
+          <span className="muted">{cell.incoming ? t(`incoming.${cell.incoming}`) : t('cell.none')}</span>
+        </div>
+        <CellView sol={cell} accumulatedGy={exposure?.accumulated ?? 0} irradiatedS={exposure?.irradiatedS ?? 0} tissue={tissueKey} reduce={reduce} lang={lang} />
+      </aside>
+    );
+  }
 
   if (!selected || !target) {
     return (

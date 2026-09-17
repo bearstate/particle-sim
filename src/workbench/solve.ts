@@ -119,8 +119,25 @@ export interface BeamSegment {
   readonly spray?: boolean;
 }
 
+export type CellIncoming = 'electrons' | 'protons' | 'photons' | 'neutrons' | null;
+
+/**
+ * Hucre ornegi (1 g doku). Egitim modeli: nokta kaynak / koni geometrisi,
+ * sabit sogurma kesirleri; gercek dozimetri degildir.
+ */
+export interface CellSolution {
+  readonly incoming: CellIncoming;
+  readonly sourceId: string | null;
+  readonly energyMeV: number;
+  readonly doseRateGyPerS: number;
+  readonly wR: number;
+  readonly doseRateSvPerS: number;
+  readonly letKeVPerUm: number;
+}
+
 export interface BenchSolution {
   readonly vdgs: Readonly<Record<string, VdgSolution>>;
+  readonly cells: Readonly<Record<string, CellSolution>>;
   readonly hv: Readonly<Record<string, HvSolution>>;
   readonly klystrons: Readonly<Record<string, KlystronSolution>>;
   readonly linacs: Readonly<Record<string, LinacSolution>>;
@@ -186,6 +203,7 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
   const linacs: Record<string, LinacSolution> = {};
   const tubes: Record<string, TubeSolution> = {};
   const targets: Record<string, TargetSolution> = {};
+  const cells: Record<string, CellSolution> = {};
   const beams: BeamSegment[] = [];
 
   const isGrounded = (id: string, port: string) => {
@@ -383,7 +401,52 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
     targets[d.id] = s ? resolve(d, s.kind, s.from, 0, 0, s.fluxPerM2S) : resolve(d, null, null, 0, 0);
   }
 
-  // MeV -> J tutarliligi icin (guc hesaplari eV ile yapildi; sabit burada kalsin)
-  void MEV_TO_J;
-  return { vdgs, hv, klystrons, linacs, tubes, targets, beams };
+  // --- Hucre ornekleri: 1 g doku, gelen isinimdan doz hizi ---
+  const CELL_MASS_KG = 1e-3;
+  const CELL_FACE_M2 = 1e-4;
+  const XRAY_CONE_HALF = Math.tan((15 * Math.PI) / 180);
+  for (const d of devices) {
+    if (d.kind !== 'cell') continue;
+    const c = center(d);
+    let sol: CellSolution = { incoming: null, sourceId: null, energyMeV: 0, doseRateGyPerS: 0, wR: 1, doseRateSvPerS: 0, letKeVPerUm: 0 };
+    const direct = primaryHits.get(d.id);
+    if (direct) {
+      const src = byId.get(direct.sourceId);
+      const energyMeV = src?.kind === 'linac' ? linacs[direct.sourceId]!.energyMeV : tubes[direct.sourceId]!.electronEnergyMeV;
+      const powerW = src?.kind === 'linac' ? linacs[direct.sourceId]!.beamPowerW : tubes[direct.sourceId]!.beamPowerW;
+      const proton = direct.kind === 'proton';
+      // Demet tumuyle sogurulur (MeV elektron/proton 1 cm dokuda durur).
+      const gy = powerW / CELL_MASS_KG;
+      const wR = proton ? 2 : 1;
+      sol = { incoming: proton ? 'protons' : 'electrons', sourceId: direct.sourceId, energyMeV, doseRateGyPerS: gy, wR, doseRateSvPerS: gy * wR, letKeVPerUm: proton ? 25 / Math.max(0.3, energyMeV) : 0.25 };
+    } else {
+      // Notronlar: en yakin notron kaynagi (menzil icinde); X-isini: soldaki hedefin konisi.
+      let best: CellSolution | null = null;
+      for (const t of targetDevices) {
+        const ts = targets[t.id]!;
+        const tc = center(t);
+        const dM = Math.max(0.05, Math.hypot(c.x - tc.x, c.y - tc.y) / PX_PER_M);
+        if (ts.neutronYieldPerS > 0 && Math.hypot(c.x - tc.x, c.y - tc.y) < NEUTRON_REACH_PX) {
+          const received = (ts.neutronYieldPerS * CELL_FACE_M2) / (4 * Math.PI * dM * dM);
+          const eMeV = 2.0;
+          const powerW = received * eMeV * MEV_TO_J * 0.5;
+          const gy = powerW / CELL_MASS_KG;
+          const wR = 17; // ICRP 103, ~2 MeV
+          const cand: CellSolution = { incoming: 'neutrons', sourceId: t.id, energyMeV: eMeV, doseRateGyPerS: gy, wR, doseRateSvPerS: gy * wR, letKeVPerUm: 35 };
+          if (!best || cand.doseRateSvPerS > best.doseRateSvPerS) best = cand;
+        }
+        if (ts.incoming === 'electrons' && ts.xrayEfficiency > 0 && c.x > tc.x && Math.abs(c.y - tc.y) < (c.x - tc.x) * XRAY_CONE_HALF + 30) {
+          const coneArea = Math.PI * Math.pow(dM * XRAY_CONE_HALF, 2) + CELL_FACE_M2;
+          const powerW = ts.beamPowerW * ts.xrayEfficiency * (CELL_FACE_M2 / coneArea) * 0.3;
+          const gy = powerW / CELL_MASS_KG;
+          const cand: CellSolution = { incoming: 'photons', sourceId: t.id, energyMeV: ts.electronEnergyMeV / 3, doseRateGyPerS: gy, wR: 1, doseRateSvPerS: gy, letKeVPerUm: 2 };
+          if (!best || cand.doseRateSvPerS > best.doseRateSvPerS) best = cand;
+        }
+      }
+      if (best) sol = best;
+    }
+    cells[d.id] = sol;
+  }
+
+  return { vdgs, hv, klystrons, linacs, tubes, targets, cells, beams };
 }

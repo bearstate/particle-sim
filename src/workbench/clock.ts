@@ -16,6 +16,8 @@ export interface Exposure {
   readonly cooledS: number;
   /** Isinlama sirasindaki son aki, 1/(m^2 s). Sogurken bu deger korunur. */
   readonly fluxPerM2S: number;
+  /** Birikim: hedefler icin akinca (1/m^2), hucre icin doz (Gy). */
+  readonly accumulated: number;
 }
 
 export interface ClockState {
@@ -43,10 +45,10 @@ export const useClock = create<ClockState>((set) => ({
       const exposure: Record<string, Exposure> = { ...s.exposure };
       const ids = new Set([...Object.keys(exposure), ...Object.keys(receiving)]);
       for (const id of ids) {
-        const prev = exposure[id] ?? { irradiatedS: 0, cooledS: 0, fluxPerM2S: 0 };
+        const prev = exposure[id] ?? { irradiatedS: 0, cooledS: 0, fluxPerM2S: 0, accumulated: 0 };
         const flux = receiving[id] ?? 0;
         exposure[id] = flux > 0
-          ? { irradiatedS: prev.irradiatedS + dt, cooledS: 0, fluxPerM2S: flux }
+          ? { irradiatedS: prev.irradiatedS + dt, cooledS: 0, fluxPerM2S: flux, accumulated: prev.accumulated + flux * dt }
           : { ...prev, cooledS: prev.cooledS + dt };
       }
       return { simTimeS: s.simTimeS + dt, exposure };

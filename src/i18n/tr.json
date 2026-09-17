@@ -26,7 +26,8 @@
     "cockcroftwalton": "Cockcroft–Walton",
     "marx": "Marx jeneratörü",
     "klystron": "RF üreteci (klistron)",
-    "linac": "Doğrusal hızlandırıcı"
+    "linac": "Doğrusal hızlandırıcı",
+    "cell": "Hücre örneği"
   },
   "port": {
     "hv": "Yüksek gerilim",
@@ -54,7 +55,8 @@
     "gapVoltage": "Boşluk gerilimi",
     "gapCount": "Boşluk sayısı",
     "mode": "Yapı",
-    "particle": "Parçacık"
+    "particle": "Parçacık",
+    "tissue": "Doku tipi"
   },
   "gas": {
     "vacuum": "Yüksek vakum",
@@ -204,5 +206,25 @@
     "linacW": "LINAC → W → Th",
     "glow": "Neon parıltı deşarjı",
     "cwW": "Cockcroft–Walton → X-ışını"
+  },
+  "tissue": {
+    "early": "Erken yanıt (α/β=10)",
+    "late": "Geç yanıt (α/β=3)",
+    "resistant": "Dirençli"
+  },
+  "cell": {
+    "title": "Hücre",
+    "doseRate": "Doz hızı",
+    "dose": "Biriken doz",
+    "equivalent": "Eşdeğer",
+    "survival": "Hayatta kalma",
+    "dsb": "Çift zincir kırığı",
+    "ssb": "Tek zincir kırığı",
+    "let": "LET",
+    "none": "Işınım gelmiyor",
+    "dead": "Hücre öldü",
+    "ld50": "LD50/60 ≈ 4.5 Gy",
+    "disclaimer": "Eğitim modeli; gerçek dozimetri değildir.",
+    "lethalIn": "LD50 süresi"
   }
 }

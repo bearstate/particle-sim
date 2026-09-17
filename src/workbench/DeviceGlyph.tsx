@@ -47,6 +47,7 @@ export function DeviceGlyph(props: GlyphProps) {
       {props.kind === 'tube' ? <Tube {...props} /> : null}
       {props.kind === 'target' ? <Target {...props} /> : null}
       {props.kind === 'ground' ? <Ground /> : null}
+      {props.kind === 'cell' ? <Dish active={props.active} /> : null}
       {props.kind === 'cockcroftwalton' ? <CockcroftWaltonGlyph stages={Number(props.params['stages'] ?? 4)} active={props.active} profile={props.fx?.stageProfile} /> : null}
       {props.kind === 'marx' ? <MarxGlyph stages={Number(props.params['stages'] ?? 10)} active={props.active} firing={props.fx?.firing ?? false} /> : null}
       {props.kind === 'klystron' ? <KlystronGlyph active={props.active} /> : null}
@@ -147,6 +148,18 @@ function Target(p: GlyphProps) {
       </text>
       <line x1={48} y1={82} x2={48} y2={92} stroke={STROKE_DIM} />
       <line x1={36} y1={92} x2={60} y2={92} stroke={STROKE_DIM} />
+    </g>
+  );
+}
+
+function Dish(p: { active: boolean }) {
+  return (
+    <g>
+      <ellipse cx={48} cy={60} rx={34} ry={12} fill="#1a2030" stroke={STROKE} />
+      <ellipse cx={48} cy={52} rx={34} ry={12} fill="rgba(185,140,255,0.18)" stroke={STROKE} />
+      <circle cx={48} cy={50} r={9} fill="#5b3f8a" stroke="#c9a6ff" strokeWidth={1} />
+      <circle cx={48} cy={50} r={4} fill="#c9a6ff" opacity={0.8} />
+      {p.active ? <circle cx={48} cy={50} r={14} fill="none" stroke="#ff5a5a" strokeWidth={1} strokeDasharray="2 3" className="spark" /> : null}
     </g>
   );
 }

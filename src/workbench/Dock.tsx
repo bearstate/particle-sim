@@ -94,6 +94,17 @@ function Telemetry(props: { id: string; kind: string; solution: BenchSolution })
   const v = props.solution.vdgs[props.id];
   const tube = props.solution.tubes[props.id];
   const g = props.solution.targets[props.id];
+  const cl = props.solution.cells[props.id];
+  if (cl) {
+    return (
+      <div className="readouts">
+        <Readout k="gelen" v={cl.incoming ? t(`incoming.${cl.incoming}`) : t('incoming.none')} tone={cl.incoming ? 'hot' : 'zero'} />
+        <Readout k="Gy/s" v={cl.doseRateGyPerS > 0 ? si(cl.doseRateGyPerS, 2) : '0'} tone={cl.doseRateGyPerS > 0 ? 'hot' : 'zero'} />
+        <Readout k="Sv/h" v={cl.doseRateSvPerS > 0 ? si(cl.doseRateSvPerS * 3600, 2) : '0'} tone={cl.doseRateSvPerS > 0 ? 'hot' : 'zero'} />
+        <Readout k="w_R" v={String(cl.wR)} />
+      </div>
+    );
+  }
   const h = props.solution.hv[props.id];
   const k = props.solution.klystrons[props.id];
   const l = props.solution.linacs[props.id];

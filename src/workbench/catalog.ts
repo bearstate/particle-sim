@@ -185,6 +185,15 @@ export const DEVICE_SPECS: Readonly<Record<DeviceKind, DeviceSpec>> = {
     ],
     emitter: { x: 48, y: 48 },
   },
+  cell: {
+    kind: 'cell',
+    w: 96,
+    h: 96,
+    ports: [],
+    params: [
+      { key: 'tissue', labelKey: 'param.tissue', kind: 'enum', options: [{ value: 'earlyResponding', labelKey: 'tissue.early' }, { value: 'lateResponding', labelKey: 'tissue.late' }, { value: 'radioresistant', labelKey: 'tissue.resistant' }] },
+    ],
+  },
   ground: {
     kind: 'ground',
     w: 64,
@@ -204,6 +213,7 @@ export const PALETTE: readonly PaletteEntry[] = [
   { id: 'target', kind: 'target', labelKey: 'device.target', defaults: { element: 'W', thickness: 2 } },
   { id: 'target_be', kind: 'target', labelKey: 'device.target_be', defaults: { element: 'Be', thickness: 5 } },
   { id: 'target_th', kind: 'target', labelKey: 'device.target_th', defaults: { element: 'Th', thickness: 20 } },
+  { id: 'cell', kind: 'cell', labelKey: 'device.cell', defaults: { tissue: 'earlyResponding' } },
   { id: 'ground', kind: 'ground', labelKey: 'device.ground', defaults: {} },
 ];
 

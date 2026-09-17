@@ -25,7 +25,7 @@ describe('nuklid envanteri', () => {
 
   it('100 gun isinlamada Pa-233 aktivitesi yakalama hizina yaklasir (denge)', () => {
     const flux = 1e13; // 1/(m^2 s)
-    const inv = computeInventory(TH, 20, { irradiatedS: 100 * DAY_S, cooledS: 0, fluxPerM2S: flux })!;
+    const inv = computeInventory(TH, 20, { irradiatedS: 100 * DAY_S, cooledS: 0, fluxPerM2S: flux, accumulated: 0 })!;
     const pa = inv.rows.find((r) => r.id === 'Pa-233')!;
     const u = inv.rows.find((r) => r.id === 'U-233')!;
     // 100 gun = 3.7 Pa-233 yari omru: aktivite dengenin %92'sinde.
@@ -39,8 +39,8 @@ describe('nuklid envanteri', () => {
 
   it('sogutma sirasinda Pa-233 bozunur, U-233 birikmeye devam eder', () => {
     const flux = 1e13;
-    const a = computeInventory(TH, 20, { irradiatedS: 30 * DAY_S, cooledS: 0, fluxPerM2S: flux })!;
-    const b = computeInventory(TH, 20, { irradiatedS: 30 * DAY_S, cooledS: 27 * DAY_S, fluxPerM2S: flux })!;
+    const a = computeInventory(TH, 20, { irradiatedS: 30 * DAY_S, cooledS: 0, fluxPerM2S: flux, accumulated: 0 })!;
+    const b = computeInventory(TH, 20, { irradiatedS: 30 * DAY_S, cooledS: 27 * DAY_S, fluxPerM2S: flux, accumulated: 0 })!;
     const pa = (i: typeof a) => i.rows.find((r) => r.id === 'Pa-233')!.atoms;
     const u = (i: typeof a) => i.rows.find((r) => r.id === 'U-233')!.atoms;
     expect(pa(b) / pa(a)).toBeCloseTo(0.5, 1);

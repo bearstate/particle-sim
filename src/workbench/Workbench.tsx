@@ -92,6 +92,9 @@ export function Workbench() {
         for (const [id, tg] of Object.entries(solutionRef.current.targets)) {
           if (tg.incoming === 'neutrons' && tg.neutronFluxPerM2S > 0) receiving[id] = tg.neutronFluxPerM2S;
         }
+        for (const [id, cl] of Object.entries(solutionRef.current.cells)) {
+          if (cl.doseRateGyPerS > 0) receiving[id] = cl.doseRateGyPerS;
+        }
         useClock.getState().tick(acc, receiving);
         acc = 0;
       }

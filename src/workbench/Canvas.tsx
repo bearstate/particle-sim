@@ -132,6 +132,7 @@ export function Canvas(props: { solution: BenchSolution; flat?: boolean }) {
           : d.kind === 'cockcroftwalton' || d.kind === 'marx' ? (h?.delivered ?? false)
           : d.kind === 'klystron' ? (k?.delivered ?? false)
           : d.kind === 'linac' ? (l?.beamCurrentA ?? 0) > 0
+          : d.kind === 'cell' ? (props.solution.cells[d.id]?.doseRateGyPerS ?? 0) > 0
           : false;
         const heat = g ? Math.min(1, g.heatW / 40) : 0;
         const gas = t ? gasProperties(t.gas as GasId) : null;

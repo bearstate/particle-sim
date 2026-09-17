@@ -9,7 +9,7 @@ import type { BenchSolution } from '../workbench/solve.ts';
 import { gasProperties, type GasId } from '../physics/gas/gases.ts';
 import { VanDeGraaff3D } from './devices/VanDeGraaff3D.tsx';
 import { Tube3D } from './devices/Tube3D.tsx';
-import { Target3D, Ground3D } from './devices/Simple3D.tsx';
+import { Target3D, Ground3D, Dish3D } from './devices/Simple3D.tsx';
 import { Beam3D } from './fx/Beam3D.tsx';
 import { CockcroftWalton3D, Marx3D, Klystron3D, Linac3D } from './devices/Sources3D.tsx';
 
@@ -91,6 +91,7 @@ export function BenchScene(props: {
           }
           if (d.kind === 'target' && g) return <Target3D key={d.id} x={d.x} y={d.y} sol={g} />;
           if (d.kind === 'ground') return <Ground3D key={d.id} x={d.x} y={d.y} />;
+          if (d.kind === 'cell') return <Dish3D key={d.id} x={d.x} y={d.y} active={(solution.cells[d.id]?.doseRateGyPerS ?? 0) > 0} />;
           const h = solution.hv[d.id];
           if (d.kind === 'cockcroftwalton' && h) return <CockcroftWalton3D key={d.id} x={d.x} y={d.y} sol={h} stages={Number(d.params['stages'] ?? 4)} />;
           if (d.kind === 'marx' && h) return <Marx3D key={d.id} x={d.x} y={d.y} sol={h} stages={Number(d.params['stages'] ?? 10)} reduce={reduce} />;

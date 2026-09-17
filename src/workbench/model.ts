@@ -18,6 +18,7 @@ export type DeviceKind =
   | 'linac'
   | 'tube'
   | 'target'
+  | 'cell'
   | 'ground';
 export type PortKind = 'hv' | 'ground' | 'rf' | 'beam';
 export type ParamValue = number | string;
