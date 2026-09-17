@@ -5,7 +5,10 @@
     "verify": "Doğrulama paneli",
     "disclaimer": "Eğitim amaçlıdır. Radyasyon korunması, klinik dozimetri veya kalkan tasarımı için kullanılamaz."
   },
-  "lang": { "tr": "TR", "en": "EN" },
+  "lang": {
+    "tr": "TR",
+    "en": "EN"
+  },
   "palette": {
     "title": "Cihazlar",
     "hint": "Tezgâha sürükle, portları kabloyla bağla, seçip alttan ayarla.",
@@ -24,9 +27,7 @@
     "hv": "Yüksek gerilim",
     "ground": "Toprak",
     "anode": "Anot",
-    "cathode": "Katot",
-    "beam_out": "Demet çıkışı",
-    "beam_in": "Demet girişi"
+    "cathode": "Katot"
   },
   "param": {
     "voltage": "Terminal gerilimi",
@@ -68,7 +69,10 @@
     "neutron_out": "Nötron koptu",
     "below_threshold": "Eşik altı: foton çıktı, çekirdek nötron vermedi",
     "capture": "Nötron yakalandı",
-    "now": "artık {{label}}"
+    "now": "artık {{label}}",
+    "scatter": "Elektron saçıldı, foton çıkmadı",
+    "photons_pass": "X-ışını fotonları geçiyor; çekirdek etkilenmiyor",
+    "recoil": "Çekirdek geri tepti"
   },
   "isotope": {
     "protium": "protyum",
@@ -76,17 +80,78 @@
     "tritium": "trityum"
   },
   "element": {
-    "H": "Hidrojen", "He": "Helyum", "Li": "Lityum", "Be": "Berilyum", "B": "Bor",
-    "C": "Karbon", "N": "Azot", "O": "Oksijen", "Ne": "Neon", "Na": "Sodyum",
-    "Mg": "Magnezyum", "Al": "Alüminyum", "Si": "Silisyum", "S": "Kükürt", "Ar": "Argon",
-    "K": "Potasyum", "Ca": "Kalsiyum", "Ti": "Titanyum", "V": "Vanadyum", "Cr": "Krom",
-    "Mn": "Mangan", "Fe": "Demir", "Co": "Kobalt", "Ni": "Nikel", "Cu": "Bakır",
-    "Zn": "Çinko", "Ga": "Galyum", "Ge": "Germanyum", "Kr": "Kripton", "Sr": "Stronsiyum",
-    "Zr": "Zirkonyum", "Nb": "Niyobyum", "Mo": "Molibden", "Ag": "Gümüş", "Cd": "Kadmiyum",
-    "In": "İndiyum", "Sn": "Kalay", "Xe": "Ksenon", "Cs": "Sezyum", "Ba": "Baryum",
-    "La": "Lantan", "Ta": "Tantal", "W": "Tungsten", "Re": "Renyum", "Ir": "İridyum",
-    "Pt": "Platin", "Au": "Altın", "Hg": "Cıva", "Tl": "Talyum", "Pb": "Kurşun",
-    "Bi": "Bizmut", "Th": "Toryum", "Pa": "Protaktinyum", "U": "Uranyum",
-    "Np": "Neptünyum", "Pu": "Plütonyum"
+    "H": "Hidrojen",
+    "He": "Helyum",
+    "Li": "Lityum",
+    "Be": "Berilyum",
+    "B": "Bor",
+    "C": "Karbon",
+    "N": "Azot",
+    "O": "Oksijen",
+    "Ne": "Neon",
+    "Na": "Sodyum",
+    "Mg": "Magnezyum",
+    "Al": "Alüminyum",
+    "Si": "Silisyum",
+    "S": "Kükürt",
+    "Ar": "Argon",
+    "K": "Potasyum",
+    "Ca": "Kalsiyum",
+    "Ti": "Titanyum",
+    "V": "Vanadyum",
+    "Cr": "Krom",
+    "Mn": "Mangan",
+    "Fe": "Demir",
+    "Co": "Kobalt",
+    "Ni": "Nikel",
+    "Cu": "Bakır",
+    "Zn": "Çinko",
+    "Ga": "Galyum",
+    "Ge": "Germanyum",
+    "Kr": "Kripton",
+    "Sr": "Stronsiyum",
+    "Zr": "Zirkonyum",
+    "Nb": "Niyobyum",
+    "Mo": "Molibden",
+    "Ag": "Gümüş",
+    "Cd": "Kadmiyum",
+    "In": "İndiyum",
+    "Sn": "Kalay",
+    "Xe": "Ksenon",
+    "Cs": "Sezyum",
+    "Ba": "Baryum",
+    "La": "Lantan",
+    "Ta": "Tantal",
+    "W": "Tungsten",
+    "Re": "Renyum",
+    "Ir": "İridyum",
+    "Pt": "Platin",
+    "Au": "Altın",
+    "Hg": "Cıva",
+    "Tl": "Talyum",
+    "Pb": "Kurşun",
+    "Bi": "Bizmut",
+    "Th": "Toryum",
+    "Pa": "Protaktinyum",
+    "U": "Uranyum",
+    "Np": "Neptünyum",
+    "Pu": "Plütonyum"
+  },
+  "regime": {
+    "off": "kapalı",
+    "vacuum": "vakum demeti",
+    "glow": "parıltı deşarjı",
+    "arc": "ark",
+    "blocked": "tıkalı (delinme altı)"
+  },
+  "vdg": {
+    "breakdown": "Küre bu gerilimi tutamıyor: sürekli deşarj. Küreyi büyüt ya da SF₆ kullan.",
+    "delivered": "anoda bağlı"
+  },
+  "incoming": {
+    "electrons": "elektron",
+    "neutrons": "nötron",
+    "photons": "X-ışını",
+    "none": "—"
   }
 }

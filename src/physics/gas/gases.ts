@@ -43,11 +43,18 @@ export interface GasProperties {
   readonly isElectronegative: boolean;
   /** Kritik indirgenmis alan (E/N)_kritik, Townsend (1 Td = 1e-21 V*m^2). */
   readonly criticalReducedFieldTd?: number;
+  /**
+   * Parilti desarji rengi, sRGB. En guclu emisyon cizgilerinden goz ile
+   * yaklastirilmis yer tutucu; spektral -> CIE hatti (PHYSICS.md 1.L) gelince
+   * bu alan oradan turetilecek. Vakum icin bos dize (parilti yok).
+   */
+  readonly glowColor: string;
 }
 
 const GAS_TABLE: Record<GasId, GasProperties> = {
   vacuum: {
     id: 'vacuum',
+    glowColor: '',
     townsendA: 0,
     townsendB: 0,
     gammaSe: 0,
@@ -60,6 +67,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   air: {
     id: 'air',
+    glowColor: '#e39cff',
     townsendA: 11.25,
     townsendB: 273.8,
     gammaSe: 0.01,
@@ -71,6 +79,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   n2: {
     id: 'n2',
+    glowColor: '#d59bff',
     townsendA: 9.0,
     townsendB: 256.5,
     gammaSe: 0.01,
@@ -82,6 +91,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   o2: {
     id: 'o2',
+    glowColor: '#bcd7ff',
     townsendA: 0,
     townsendB: 0,
     gammaSe: 0.01,
@@ -94,6 +104,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   co2: {
     id: 'co2',
+    glowColor: '#cdd7ff',
     townsendA: 15.0,
     townsendB: 349.5,
     gammaSe: 0.01,
@@ -105,6 +116,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   h2: {
     id: 'h2',
+    glowColor: '#ff7ad9',
     townsendA: 3.75,
     townsendB: 97.5,
     gammaSe: 0.02,
@@ -116,6 +128,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   he: {
     id: 'he',
+    glowColor: '#ffc3a0',
     townsendA: 2.25,
     townsendB: 25.5,
     gammaSe: 0.15,
@@ -127,6 +140,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   ne: {
     id: 'ne',
+    glowColor: '#ff6a2a',
     townsendA: 3.0,
     townsendB: 75.0,
     gammaSe: 0.1,
@@ -138,6 +152,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   ar: {
     id: 'ar',
+    glowColor: '#b48cff',
     townsendA: 9.0,
     townsendB: 135.0,
     gammaSe: 0.06,
@@ -149,6 +164,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   kr: {
     id: 'kr',
+    glowColor: '#d6ffe4',
     townsendA: 12.0,
     townsendB: 180.0,
     gammaSe: 0.05,
@@ -160,6 +176,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   xe: {
     id: 'xe',
+    glowColor: '#cfe4ff',
     townsendA: 15.0,
     townsendB: 262.5,
     gammaSe: 0.04,
@@ -171,6 +188,7 @@ const GAS_TABLE: Record<GasId, GasProperties> = {
   },
   sf6: {
     id: 'sf6',
+    glowColor: '#9ec7ff',
     townsendA: 0,
     townsendB: 0,
     gammaSe: 0.005,

@@ -1,20 +1,30 @@
 import type { DeviceKind, ParamValue } from './model.ts';
-import { specOf } from './catalog.ts';
+import { specOf, sphereRadiusPx, VDG_SPHERE, TUBE } from './catalog.ts';
+import type { TubeRegime } from './solve.ts';
+import { ArcChannel } from './fx/Sparks.tsx';
 
 /**
- * Cihazlarin sematik cizimleri. Teknik cizim estetigi: ince cizgi, az dolgu,
- * fiziksel olarak dogru parcalar (kayis, taraklar, kure; katot/anot; hedef).
- * Origin cihazin sol ust kosesi; parent <g transform> ile tasir.
+ * Cihazlarin sematik cizimleri. Teknik cizim estetigi; fiziksel olarak dogru
+ * parcalar. Origin cihazin sol ust kosesi.
+ *
+ * Demet BURADA cizilmez (fx/Beam.tsx tezgah duzeyinde cizer); tup yalnizca
+ * gaz rejimini gosterir: parilti sutunu, katot karanlik uzayi, ark kanali.
  */
+
+export interface GlyphFx {
+  readonly regime?: TubeRegime;
+  readonly glowColor?: string;
+  readonly breakdown?: boolean;
+  readonly reduce?: boolean;
+}
 
 export interface GlyphProps {
   readonly kind: DeviceKind;
   readonly params: Readonly<Record<string, ParamValue>>;
   readonly selected: boolean;
-  /** Enerjili/aktif: kure yuklu, tupte demet, hedef isiniyor. */
   readonly active: boolean;
-  /** 0..1 isinma gostergesi (hedef/anot). */
   readonly heat?: number;
+  readonly fx?: GlyphFx;
 }
 
 const STROKE = '#9aa3b5';
@@ -37,52 +47,77 @@ export function DeviceGlyph(props: GlyphProps) {
 }
 
 function VanDeGraaff(p: GlyphProps) {
-  const r = 44;
-  const cx = 60;
-  const cy = 52;
-  const glow = p.active ? 0.55 : 0.15;
+  const radiusM = typeof p.params['radius'] === 'number' ? (p.params['radius'] as number) : 0.15;
+  const r = sphereRadiusPx(radiusM);
+  const { cx, cy } = VDG_SPHERE;
+  const columnTop = cy + r * 0.75;
+  const glow = p.fx?.breakdown ? 0.9 : p.active ? 0.5 : 0.12;
   return (
     <g>
-      {/* taban ve sutun */}
       <rect x={30} y={196} width={60} height={12} rx={2} fill={FILL} stroke={STROKE} />
-      <rect x={52} y={96} width={16} height={100} fill={FILL} stroke={STROKE} />
-      {/* kayis: iki makara, hareketli cizgiler */}
-      <ellipse cx={60} cy={104} rx={9} ry={4} fill="none" stroke={STROKE_DIM} />
+      <rect x={52} y={columnTop} width={16} height={196 - columnTop} fill={FILL} stroke={STROKE} />
+      <ellipse cx={60} cy={columnTop + 8} rx={9} ry={4} fill="none" stroke={STROKE_DIM} />
       <ellipse cx={60} cy={188} rx={9} ry={4} fill="none" stroke={STROKE_DIM} />
-      <line x1={51} y1={104} x2={51} y2={188} stroke={STROKE_DIM} strokeDasharray="3 5" className={p.active ? 'belt-run' : ''} />
-      <line x1={69} y1={104} x2={69} y2={188} stroke={STROKE_DIM} strokeDasharray="3 5" className={p.active ? 'belt-run-rev' : ''} />
-      {/* taraklar (korona tarak ucu) */}
+      <line x1={51} y1={columnTop + 8} x2={51} y2={188} stroke={STROKE_DIM} strokeDasharray="3 5" className={p.active && !p.fx?.reduce ? 'belt-run' : ''} />
+      <line x1={69} y1={columnTop + 8} x2={69} y2={188} stroke={STROKE_DIM} strokeDasharray="3 5" className={p.active && !p.fx?.reduce ? 'belt-run-rev' : ''} />
       <path d="M42 182 l7 -3 l-7 -3" fill="none" stroke={STROKE} />
-      <path d="M78 110 l-7 3 l7 3" fill="none" stroke={STROKE} />
-      {/* kure */}
-      <circle cx={cx} cy={cy} r={r + 6} fill="#4da3ff" opacity={glow * 0.25} />
+      <path d={`M78 ${columnTop + 14} l-7 3 l7 3`} fill="none" stroke={STROKE} />
+      {/* korona halesi: gerilimle buyur, delinmede sert */}
+      <circle cx={cx} cy={cy} r={r + 6 + glow * 10} fill={p.fx?.breakdown ? '#ff8a3d' : '#4da3ff'} opacity={glow * 0.28} />
       <circle cx={cx} cy={cy} r={r} fill="url(#sphereGrad)" stroke={STROKE} />
-      <circle cx={cx - 14} cy={cy - 14} r={10} fill="#ffffff" opacity={0.08} />
+      <circle cx={cx - r * 0.32} cy={cy - r * 0.32} r={r * 0.22} fill="#ffffff" opacity={0.08} />
+      <text x={cx} y={cy + r + 14} fill={STROKE_DIM} fontSize={9} textAnchor="middle" fontFamily="ui-monospace, monospace">
+        R {(radiusM * 100).toFixed(0)} cm
+      </text>
     </g>
   );
 }
 
 function Tube(p: GlyphProps) {
   const heat = p.heat ?? 0;
+  const regime = p.fx?.regime ?? 'off';
+  const glowColor = p.fx?.glowColor ?? '#b48cff';
+  const ay = TUBE.axisY;
   return (
     <g>
-      {/* cam govde */}
+      <defs>
+        <clipPath id="tubeClip">
+          <rect x={12} y={24} width={216} height={48} rx={24} />
+        </clipPath>
+        <pattern id="striPat" width={24} height={48} patternUnits="userSpaceOnUse">
+          <rect x={0} y={0} width={10} height={48} fill={glowColor} opacity={0.35} />
+        </pattern>
+      </defs>
       <rect x={10} y={22} width={220} height={52} rx={26} fill="rgba(120,160,220,0.06)" stroke={STROKE} />
-      <rect x={16} y={28} width={208} height={40} rx={20} fill="none" stroke="rgba(255,255,255,0.05)" />
-      {/* katot (sol) */}
-      <line x1={22} y1={14} x2={22} y2={34} stroke={STROKE} />
-      <rect x={16} y={34} width={12} height={28} rx={2} fill={heat > 0 ? `rgba(255,${Math.round(170 - heat * 120)},60,${0.3 + heat * 0.7})` : FILL} stroke={STROKE} />
-      {/* anot (sag): halka */}
-      <line x1={218} y1={14} x2={218} y2={34} stroke={STROKE} />
-      <circle cx={218} cy={48} r={12} fill="none" stroke={STROKE} strokeWidth={2} />
-      {/* demet (aktifse) */}
-      {p.active ? (
-        <g>
-          <line x1={30} y1={48} x2={240} y2={48} stroke="#8fd3ff" strokeWidth={6} opacity={0.18} />
-          <line x1={30} y1={48} x2={240} y2={48} stroke="#dff3ff" strokeWidth={1.5} strokeDasharray="2 10" className="beam-run" />
+
+      {/* --- gaz rejimleri --- */}
+      {regime === 'glow' ? (
+        <g clipPath="url(#tubeClip)">
+          {/* pozitif sutun: gaz rengi */}
+          <rect x={44} y={24} width={190} height={48} fill={glowColor} opacity={0.42} />
+          {/* cizgilenme (striation): kayan bantlar */}
+          <g className={p.fx?.reduce ? '' : 'striations'}>
+            <rect x={44} y={24} width={230} height={48} fill="url(#striPat)" />
+          </g>
+          {/* katot karanlik uzayi: katodun hemen onu parlamaz */}
+          <rect x={28} y={24} width={16} height={48} fill="#05070a" opacity={0.7} />
+          {/* negatif parilti: katot onunde ince parlak serit */}
+          <rect x={22} y={26} width={6} height={44} fill={glowColor} opacity={0.9} />
+          <rect x={12} y={24} width={216} height={48} rx={24} fill={glowColor} opacity={0.1} />
         </g>
       ) : null}
-      {/* etiketler */}
+      {regime === 'blocked' ? (
+        <rect x={12} y={24} width={216} height={48} rx={24} fill={glowColor} opacity={0.05} />
+      ) : null}
+      <ArcChannel x1={28} y1={ay} x2={TUBE.anodeX - 12} y2={ay} active={regime === 'arc'} reduce={p.fx?.reduce ?? false} />
+      {regime === 'arc' ? <rect x={12} y={24} width={216} height={48} rx={24} fill="#cfe3ff" opacity={0.12} /> : null}
+
+      {/* katot (sol): isinirsa kizarir */}
+      <line x1={22} y1={14} x2={22} y2={34} stroke={STROKE} />
+      <rect x={16} y={34} width={12} height={28} rx={2} fill={heat > 0 ? `rgba(255,${Math.round(170 - heat * 120)},60,${0.3 + heat * 0.7})` : FILL} stroke={STROKE} />
+      {/* anot (sag): halka — elektronlar icinden gecip cikar */}
+      <line x1={218} y1={14} x2={218} y2={34} stroke={STROKE} />
+      <circle cx={218} cy={ay} r={12} fill="none" stroke={STROKE} strokeWidth={2} />
       <text x={22} y={90} fill={STROKE_DIM} fontSize={9} textAnchor="middle" fontFamily="ui-monospace, monospace">−</text>
       <text x={218} y={90} fill={STROKE_DIM} fontSize={9} textAnchor="middle" fontFamily="ui-monospace, monospace">+</text>
     </g>
@@ -99,7 +134,6 @@ function Target(p: GlyphProps) {
       <text x={48} y={54} fill="#dde3ee" fontSize={16} fontWeight={600} textAnchor="middle" fontFamily="system-ui, sans-serif">
         {el}
       </text>
-      {/* tutucu */}
       <line x1={48} y1={82} x2={48} y2={92} stroke={STROKE_DIM} />
       <line x1={36} y1={92} x2={60} y2={92} stroke={STROKE_DIM} />
     </g>
@@ -117,7 +151,6 @@ function Ground() {
   );
 }
 
-/** Tek sefer tanimlanan SVG gradyanlari; Canvas <defs> icine koyar. */
 export function GlyphDefs() {
   return (
     <defs>

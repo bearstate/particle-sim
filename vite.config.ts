@@ -8,6 +8,8 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: {
+    // OneDrive'da yerel izleyici degisiklikleri kaciriyor; polling guvenilir.
+    watch: { usePolling: true, interval: 300 },
     // SharedArrayBuffer cross-origin izolasyon gerektirir. Yoksa worker
     // protokolu otomatik olarak postMessage'a duser (src/sim/protocol.ts).
     headers: {

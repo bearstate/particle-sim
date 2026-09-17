@@ -1,29 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useWorkbench } from './model.ts';
-import { BohrAtom, type AtomPhase } from './BohrAtom.tsx';
+import { BohrAtom, type ActInfo, type AtomMode } from './BohrAtom.tsx';
 import type { BenchSolution } from './solve.ts';
 import { nuclideLabel, specialIsotopeKey, bohrShells, neutronCount } from '../physics/data/nuclides.ts';
 import { si } from '../ui/Controls.tsx';
+import { useReducedMotion } from '../ui/useReducedMotion.ts';
 
 /**
  * Mikro gorunum: secili hedefin atomu ve uzerinde olan biten.
- * Olay surdukce (demet acikken) ~3 s'de bir bastan oynar.
+ * Koreografi BohrAtom'un icinde; burada yalnizca mod secilir ve anlati yazilir.
  */
 export function Inspector(props: { solution: BenchSolution }) {
   const { t } = useTranslation();
+  const reduce = useReducedMotion();
   const selected = useWorkbench((s) => s.devices.find((d) => d.id === s.selectedId) ?? null);
   const target = selected ? props.solution.targets[selected.id] : undefined;
-  const [playKey, setPlayKey] = useState(0);
-  const [phase, setPhase] = useState<AtomPhase>({ t: 0, label: 'idle' });
+  const [last, setLast] = useState<ActInfo | null>(null);
 
-  const event = target?.event ?? null;
-  useEffect(() => {
-    if (!event) return;
-    setPlayKey((k) => k + 1);
-    const id = setInterval(() => setPlayKey((k) => k + 1), 3200);
-    return () => clearInterval(id);
-  }, [event, selected?.id]);
+  const mode: AtomMode = !target || !target.incoming
+    ? 'idle'
+    : target.incoming === 'electrons'
+      ? (target.aboveThreshold ? 'above' : 'below')
+      : target.incoming === 'neutrons' ? 'neutrons' : 'photons';
+
+  useEffect(() => setLast(null), [selected?.id, mode]);
+  const onAct = useCallback((info: ActInfo) => setLast(info), []);
 
   if (!selected || !target) {
     return (
@@ -38,20 +40,29 @@ export function Inspector(props: { solution: BenchSolution }) {
   const special = specialIsotopeKey(target.nuclide);
   const name = special ? t(special) : t(`element.${sym}`);
   const shells = bohrShells(target.nuclide.Z);
-  const done = phase.label === 'done';
-  const shown = done && target.product ? target.product : target.nuclide;
+  const transmuted = last && ((last.act === 'photoneutron' && (last.phase === 'neutron' || last.phase === 'done')) || (last.act === 'capture' && (last.phase === 'gdr' || last.phase === 'done')));
+  const shown = transmuted && target.product ? target.product : target.nuclide;
 
   const narrative = (() => {
-    switch (phase.label) {
-      case 'electron': return t('event.electron_arrives');
-      case 'photon': return t('event.photon');
-      case 'gdr': return event === 'below_threshold' ? t('event.below_threshold') : t('event.gdr');
-      case 'neutron': return t('event.neutron_out');
-      case 'capture': return t('event.capture');
-      case 'done':
-        if (target.product) return t('event.now', { label: nuclideLabel(target.product) });
-        return t('event.below_threshold');
-      default: return '';
+    if (reduce) {
+      if (mode === 'above' && target.product) return t('event.now', { label: nuclideLabel(target.product) });
+      if (mode === 'below') return t('event.below_threshold');
+      if (mode === 'neutrons' && target.product) return t('event.now', { label: nuclideLabel(target.product) });
+      if (mode === 'photons') return t('event.photons_pass');
+      return '';
+    }
+    if (!last) return '';
+    switch (last.act) {
+      case 'scatter': return t('event.scatter');
+      case 'brems': return last.phase === 'photon' || last.phase === 'done' ? t('event.photon') : t('event.electron_arrives');
+      case 'photoneutron':
+        if (last.phase === 'start') return t('event.electron_arrives');
+        if (last.phase === 'photon') return t('event.photon');
+        if (last.phase === 'gdr') return t('event.gdr');
+        return `${t('event.neutron_out')} — ${target.product ? t('event.now', { label: nuclideLabel(target.product) }) : ''}`;
+      case 'capture':
+        return last.phase === 'start' ? t('event.electron_arrives').replace(/.*/, t('incoming.neutrons')) + ' →' : `${t('event.capture')} — ${target.product ? t('event.now', { label: nuclideLabel(target.product) }) : ''}`;
+      case 'photonPass': return t('event.photons_pass');
     }
   })();
 
@@ -62,13 +73,14 @@ export function Inspector(props: { solution: BenchSolution }) {
         <span className="nuclide">{nuclideLabel(shown)}</span>
         <span className="muted">{name} · Z={target.nuclide.Z}</span>
       </div>
-      <BohrAtom nuclide={target.nuclide} event={event} playKey={playKey} size={260} onPhase={setPhase} />
-      <p className={`narrative ${event ? 'on' : ''}`}>{narrative || ' '}</p>
+      <BohrAtom nuclide={target.nuclide} mode={mode} reduce={reduce} size={260} onAct={onAct} />
+      <p className={`narrative ${mode !== 'idle' ? 'on' : ''}`}>{narrative || ' '}</p>
       <dl className="facts">
         <dt>{t('inspector.protons')}</dt><dd>{target.nuclide.Z}</dd>
         <dt>{t('inspector.neutrons')}</dt><dd>{neutronCount(shown)}</dd>
         <dt>{t('inspector.electrons')}</dt><dd>{shells.join(' · ')}</dd>
         <dt>(γ,n)</dt><dd>{target.thresholdMeV.toFixed(2)} MeV</dd>
+        <dt>{t('incoming.none').replace('—', 'gelen')}</dt><dd>{target.incoming ? t(`incoming.${target.incoming}`) : t('incoming.none')}</dd>
         {target.incoming === 'electrons' ? (
           <>
             <dt>E</dt><dd className={target.aboveThreshold ? 'ok' : 'warn'}>{target.electronEnergyMeV.toFixed(2)} MeV</dd>

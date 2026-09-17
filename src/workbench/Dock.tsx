@@ -97,17 +97,21 @@ function Telemetry(props: { id: string; kind: string; solution: BenchSolution })
 
   if (v) {
     return (
+      <>
       <div className="readouts">
-        <Readout k={t('param.voltage')} v={`${si(v.voltageV, 0)}V`} />
-        <Readout k="V_max" v={`${si(v.maxV, 0)}V`} tone={v.voltageV >= v.maxV - 1 ? 'hot' : undefined} />
-        <Readout k={t('port.hv')} v={v.delivered ? '→' : `${(v.sparkM * 100).toFixed(1)} cm ⚡`} tone={v.delivered ? undefined : 'hot'} />
+        <Readout k={t('param.voltage')} v={`${si(v.voltageV, 1)}V`} tone={v.breakdown ? 'hot' : undefined} />
+        <Readout k="V_max" v={`${si(v.maxV, 1)}V`} tone={v.breakdown ? 'hot' : undefined} />
+        <Readout k="⚡" v={`${(v.sparkM * 100).toFixed(1)} cm`} tone={v.arcRatePerS > 0 ? 'hot' : 'zero'} />
+        <Readout k={t('port.hv')} v={v.delivered ? t('vdg.delivered') : '—'} tone={v.delivered ? 'neutron' : 'zero'} />
       </div>
+      {v.breakdown ? <p className="note">{t('vdg.breakdown')}</p> : null}
+      </>
     );
   }
   if (tube) {
     return (
       <div className="readouts">
-        <Readout k="rejim" v={tube.regime} tone={tube.regime === 'vacuum' ? 'neutron' : tube.regime === 'off' ? 'zero' : 'hot'} />
+        <Readout k="rejim" v={t(`regime.${tube.regime}`)} tone={tube.regime === 'vacuum' ? 'neutron' : tube.regime === 'off' ? 'zero' : 'hot'} />
         <Readout k="I" v={`${si(tube.beamCurrentA, 1)}A`} tone={tube.beamCurrentA > 0 ? undefined : 'zero'} />
         <Readout k="E" v={`${tube.electronEnergyMeV.toFixed(2)} MeV`} />
         <Readout k="P" v={`${si(tube.beamPowerW, 2)}W`} />
@@ -117,6 +121,7 @@ function Telemetry(props: { id: string; kind: string; solution: BenchSolution })
   if (g) {
     return (
       <div className="readouts">
+        <Readout k="gelen" v={g.incoming ? t(`incoming.${g.incoming}`) : t('incoming.none')} tone={g.incoming ? 'neutron' : 'zero'} />
         <Readout k="(γ,n)" v={`${g.thresholdMeV.toFixed(2)} MeV`} />
         <Readout k="E" v={g.incoming === 'electrons' ? `${g.electronEnergyMeV.toFixed(2)} MeV` : '—'} tone={g.aboveThreshold ? 'neutron' : g.incoming ? 'hot' : 'zero'} />
         <Readout k="n/s" v={g.neutronYieldPerS > 0 ? si(g.neutronYieldPerS, 2) : '0'} tone={g.neutronYieldPerS > 0 ? 'neutron' : 'zero'} />

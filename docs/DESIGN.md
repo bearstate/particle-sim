@@ -26,9 +26,16 @@ Her cihazın tipli portları vardır. Kablo yalnızca uyumlu portlar arasında �
 |---|---|---|
 | `hv` | Kalın kablo | Van de Graaff küresi → tüp anodu |
 | `ground` | İnce kablo, toprak sembolü | Tüp katodu → toprak |
-| `beam` | Kesikli demet hattı | Tüp çıkışı → hedef |
 
-`beam` bir kablo değil, **hizalama**dır: demetin ulaştığı şey neyse ona gider.
+**Demet bir port değildir, geometridir.** Tüpün çıkışından sağa doğru uçar ve
+ekseni kesen ilk cihaza çarpar (`solve.firstHitToRight`). Hedeften X-ışını
+ileri (koni), nötron her yöne çıkar; 340 px içindeki en yakın hedef nötronları
+yakalar. Kullanıcı hiçbir şeyi "demete bağlamaz" — hizalar.
+
+**Van de Graaff tavanı görünürdür.** Küre yalnızca `E_delinme · R` kadar
+gerilim tutar (15 cm havada 450 kV). İstenen gerilim bunu aşarsa terminal
+"kendini boşaltır": ark fırtınası, turuncu hale, dock'ta uyarı. Küreyi
+büyütmek (görselde de büyür) ya da SF₆ tavanı kaldırır.
 
 ## Mikro görünüm: mekanizma doğru gösterilir
 

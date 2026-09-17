@@ -5,7 +5,10 @@
     "verify": "Verification panel",
     "disclaimer": "For education only. Not for radiation protection, clinical dosimetry or shielding design."
   },
-  "lang": { "tr": "TR", "en": "EN" },
+  "lang": {
+    "tr": "TR",
+    "en": "EN"
+  },
   "palette": {
     "title": "Devices",
     "hint": "Drag onto the bench, wire the ports, select to adjust below.",
@@ -24,9 +27,7 @@
     "hv": "High voltage",
     "ground": "Ground",
     "anode": "Anode",
-    "cathode": "Cathode",
-    "beam_out": "Beam out",
-    "beam_in": "Beam in"
+    "cathode": "Cathode"
   },
   "param": {
     "voltage": "Terminal voltage",
@@ -68,7 +69,10 @@
     "neutron_out": "Neutron ejected",
     "below_threshold": "Below threshold: photon emitted, nucleus keeps its neutrons",
     "capture": "Neutron captured",
-    "now": "now {{label}}"
+    "now": "now {{label}}",
+    "scatter": "Electron scattered, no photon",
+    "photons_pass": "X-ray photons pass through; nucleus unaffected",
+    "recoil": "Nucleus recoiled"
   },
   "isotope": {
     "protium": "protium",
@@ -76,17 +80,78 @@
     "tritium": "tritium"
   },
   "element": {
-    "H": "Hydrogen", "He": "Helium", "Li": "Lithium", "Be": "Beryllium", "B": "Boron",
-    "C": "Carbon", "N": "Nitrogen", "O": "Oxygen", "Ne": "Neon", "Na": "Sodium",
-    "Mg": "Magnesium", "Al": "Aluminium", "Si": "Silicon", "S": "Sulfur", "Ar": "Argon",
-    "K": "Potassium", "Ca": "Calcium", "Ti": "Titanium", "V": "Vanadium", "Cr": "Chromium",
-    "Mn": "Manganese", "Fe": "Iron", "Co": "Cobalt", "Ni": "Nickel", "Cu": "Copper",
-    "Zn": "Zinc", "Ga": "Gallium", "Ge": "Germanium", "Kr": "Krypton", "Sr": "Strontium",
-    "Zr": "Zirconium", "Nb": "Niobium", "Mo": "Molybdenum", "Ag": "Silver", "Cd": "Cadmium",
-    "In": "Indium", "Sn": "Tin", "Xe": "Xenon", "Cs": "Caesium", "Ba": "Barium",
-    "La": "Lanthanum", "Ta": "Tantalum", "W": "Tungsten", "Re": "Rhenium", "Ir": "Iridium",
-    "Pt": "Platinum", "Au": "Gold", "Hg": "Mercury", "Tl": "Thallium", "Pb": "Lead",
-    "Bi": "Bismuth", "Th": "Thorium", "Pa": "Protactinium", "U": "Uranium",
-    "Np": "Neptunium", "Pu": "Plutonium"
+    "H": "Hydrogen",
+    "He": "Helium",
+    "Li": "Lithium",
+    "Be": "Beryllium",
+    "B": "Boron",
+    "C": "Carbon",
+    "N": "Nitrogen",
+    "O": "Oxygen",
+    "Ne": "Neon",
+    "Na": "Sodium",
+    "Mg": "Magnesium",
+    "Al": "Aluminium",
+    "Si": "Silicon",
+    "S": "Sulfur",
+    "Ar": "Argon",
+    "K": "Potassium",
+    "Ca": "Calcium",
+    "Ti": "Titanium",
+    "V": "Vanadium",
+    "Cr": "Chromium",
+    "Mn": "Manganese",
+    "Fe": "Iron",
+    "Co": "Cobalt",
+    "Ni": "Nickel",
+    "Cu": "Copper",
+    "Zn": "Zinc",
+    "Ga": "Gallium",
+    "Ge": "Germanium",
+    "Kr": "Krypton",
+    "Sr": "Strontium",
+    "Zr": "Zirconium",
+    "Nb": "Niobium",
+    "Mo": "Molybdenum",
+    "Ag": "Silver",
+    "Cd": "Cadmium",
+    "In": "Indium",
+    "Sn": "Tin",
+    "Xe": "Xenon",
+    "Cs": "Caesium",
+    "Ba": "Barium",
+    "La": "Lanthanum",
+    "Ta": "Tantalum",
+    "W": "Tungsten",
+    "Re": "Rhenium",
+    "Ir": "Iridium",
+    "Pt": "Platinum",
+    "Au": "Gold",
+    "Hg": "Mercury",
+    "Tl": "Thallium",
+    "Pb": "Lead",
+    "Bi": "Bismuth",
+    "Th": "Thorium",
+    "Pa": "Protactinium",
+    "U": "Uranium",
+    "Np": "Neptunium",
+    "Pu": "Plutonium"
+  },
+  "regime": {
+    "off": "off",
+    "vacuum": "vacuum beam",
+    "glow": "glow discharge",
+    "arc": "arc",
+    "blocked": "blocked (below breakdown)"
+  },
+  "vdg": {
+    "breakdown": "The sphere cannot hold this voltage: continuous discharge. Enlarge it or use SF₆.",
+    "delivered": "wired to anode"
+  },
+  "incoming": {
+    "electrons": "electrons",
+    "neutrons": "neutrons",
+    "photons": "X-rays",
+    "none": "—"
   }
 }

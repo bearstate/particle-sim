@@ -252,3 +252,33 @@ svg.atom { display: block; margin: 0 auto; }
 @media (prefers-reduced-motion: reduce) {
   .beam-run, .belt-run, .belt-run-rev, .spark, .shell { animation: none; }
 }
+
+/* ===== Tezgah efektleri (CSS: ana is parcacigi disinda, transform+opacity) ===== */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Demet parcacigi: dis <g> yol boyunca dogrusal, ic daire hafif titrer. */
+@keyframes beamFly {
+  from { transform: rotate(var(--ang, 0deg)) translateX(0); opacity: 0; }
+  8%   { opacity: var(--op, 0.9); }
+  92%  { opacity: var(--op, 0.9); }
+  to   { transform: rotate(var(--ang, 0deg)) translateX(var(--len)); opacity: 0; }
+}
+@keyframes beamJitter {
+  0%   { transform: translateY(calc(var(--y) * -1)); }
+  50%  { transform: translateY(var(--y)); }
+  100% { transform: translateY(calc(var(--y) * -1)); }
+}
+.bp-move { animation: beamFly var(--d) linear infinite; animation-delay: var(--delay); }
+.bp-jit  { animation: beamJitter var(--jd, 90ms) steps(2, jump-none) infinite; }
+
+/* Plazma cizgilenmesi: sutun boyunca kayan bantlar. */
+@keyframes striate { to { transform: translateX(-24px); } }
+.striations { animation: striate 0.9s linear infinite; }
+
+/* Ark kanali ve kivilcimlar WAAPI ile opaklik surer; burada sadece azaltilmis hareket. */
+@media (prefers-reduced-motion: reduce) {
+  .bp-move, .bp-jit, .striations { animation: none; }
+}
