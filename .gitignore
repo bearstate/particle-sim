@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+coverage/
+
+# Ham veri indirmeleri: buyuk, yeniden uretilebilir. Uretilen LUT'lar public/data'da tutulur.
+scripts/build-data/raw/
+
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
