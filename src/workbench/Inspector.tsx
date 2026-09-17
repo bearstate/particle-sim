@@ -9,6 +9,10 @@ import { useReducedMotion } from '../ui/useReducedMotion.ts';
 import { useClock, formatSimTime } from './clock.ts';
 import { computeInventory } from './inventory.ts';
 import { CellView } from './CellView.tsx';
+import { PaschenChart } from '../ui/PaschenChart.tsx';
+import { SpectrumChart } from '../ui/SpectrumChart.tsx';
+import { breakdownVoltageV } from '../physics/gas/paschen.ts';
+import type { GasId } from '../physics/gas/gases.ts';
 import { formatHalfLife } from '../physics/nuclear/decay.ts';
 
 /**
@@ -71,6 +75,28 @@ export function Inspector(props: { solution: BenchSolution }) {
 
   useEffect(() => setLast(null), [selected?.id, mode]);
   const onAct = useCallback((info: ActInfo) => setLast(info), []);
+
+  const tube = selected ? props.solution.tubes[selected.id] : undefined;
+  if (selected && tube) {
+    const vb = breakdownVoltageV(tube.gas as GasId, tube.pressurePa, 0.2);
+    return (
+      <aside className="inspector">
+        <h2>{t('inspector.tube')}</h2>
+        <div className="inspector-head">
+          <span className="nuclide">{t(`regime.${tube.regime}`)}</span>
+          <span className="muted">{t(`gas.${tube.gas}`)} · {si(tube.pressurePa, 1)}Pa</span>
+        </div>
+        <PaschenChart gas={tube.gas as GasId} pressurePa={tube.pressurePa} gapM={0.2} />
+        <dl className="facts">
+          <dt>V</dt><dd>{si(tube.voltageV, 2)}V</dd>
+          <dt>V_b</dt><dd>{Number.isFinite(vb) ? `${si(vb, 2)}V` : '∞'}</dd>
+          <dt>I</dt><dd>{tube.beamCurrentA > 0 ? `${si(tube.beamCurrentA, 2)}A` : '—'}</dd>
+          <dt>E</dt><dd>{tube.electronEnergyMeV > 0 ? `${tube.electronEnergyMeV.toFixed(2)} MeV` : '—'}</dd>
+        </dl>
+        <p className="note">{t('inspector.paschen')}</p>
+      </aside>
+    );
+  }
 
   const cell = selected ? props.solution.cells[selected.id] : undefined;
   if (selected && cell) {
@@ -155,6 +181,12 @@ export function Inspector(props: { solution: BenchSolution }) {
           </>
         ) : null}
       </dl>
+      {target.incoming === 'electrons' ? (
+        <div className="inventory">
+          <h3>{t('inspector.spectrum')}</h3>
+          <SpectrumChart anodeZ={target.element.Z} tubeVoltageV={target.electronEnergyMeV * 1e6} filterMm={0} />
+        </div>
+      ) : null}
       <InventoryTable element={target.element} thicknessMm={thicknessMm} exposure={exposure} lang={lang} />
     </aside>
   );

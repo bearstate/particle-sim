@@ -79,7 +79,10 @@
     "protons": "protons",
     "neutrons": "neutrons",
     "electrons": "electrons",
-    "shell": "shell"
+    "shell": "shell",
+    "tube": "Tube",
+    "spectrum": "X-ray spectrum (Kramers + characteristic)",
+    "paschen": "Paschen curve, 20 cm cathode-anode gap. Orange dot is the operating point; above the curve it discharges."
   },
   "event": {
     "electron_arrives": "Electron arrives",

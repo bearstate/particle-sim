@@ -59,10 +59,30 @@ değildir; PhET de aynı sadeleştirmeyi yapar. Çekirdek Z proton + N nötron
 kümesi olarak çizilir; W-184'te 184 nükleon paketlenmiş daire olarak görünür.
 Nötron koptuğunda küme küçülür ve etiket A'yı günceller.
 
-## Aşama 2 dilimi
+## Cihazlar (2026-09-18)
 
-1. Tezgâh iskeleti: palet, sürükle-bırak, kablo, seçim, dock. (SVG)
-2. Nüklid adlandırma + Bohr atom bileşeni + mikro görünüm.
-3. Fizik bağlantısı: kablo varsa gerilim tüpe ulaşır, demet akar, hedef ısınır,
-   eşik geçilince nötron olayı mikro görünümde oynar.
-4. three.js sahne katmanı: sabit kamera, bloom, demet parçacıkları, ark.
+| Tür | Portlar | Ne yapar |
+|---|---|---|
+| Van de Graaff | hv | Kayış akımı, korona, `E·R` tavanı; tavan aşılınca sürekli deşarj |
+| Cockcroft–Walton | hv, gnd | `2NV` ideal, yük altında `ΔV ∝ N³` düşümü (sabit-nokta iterasyonu) |
+| Marx | hv, gnd | `NV₀·η` tepe, darbeli |
+| Klistron | rf, gnd | RF gücü; LINAC'ın demet gücünü sınırlar |
+| LINAC | rf, cathode | Sürüklenme tüpleri fizikten; Kilpatrick aşılırsa ark; e⁻ veya p⁺ |
+| Vakum tüpü | anode(hv), cathode(gnd) | Vakumda demet; gazda Paschen'e göre parıltı/ark/tıkalı |
+| Hedef | — | (γ,n) eşiği, X-ışını, ısı ve sıcaklık, nötron yakalama envanteri |
+| Hücre örneği | — | Doz hızı (Gy/s, Sv/h), LQ hayatta kalma, DNA hasarı |
+| Toprak | gnd | Dönüş yolu |
+
+## Katmanlar (uygulanan)
+
+- **Tezgâh (SVG)**: etkileşim, portlar, kablolar, seçim; şematik mod (3D kapalı) glyph'leri de çizer.
+- **Sahne (three.js)**: `scene/BenchScene.tsx`, ortografik kamera 1 px = 1 birim, `RoomEnvironment` yansıması,
+  selective bloom + ACES; parçacıklar vertex shader'da analitik (`scene/fx/Beam3D.tsx`), arklar drei `Line`.
+- **Saat**: `workbench/clock.ts`, 1×…1e9×, hedef başına maruziyet; envanter Bateman ile (`inventory.ts`).
+- **Kayıt**: topoloji `localStorage`'a (`bench.v1`); hazır kurulumlar `presets.ts`.
+
+## Sırada
+
+- Termal zaman entegrasyonu (şu an denge sıcaklığı), Marx darbe görselleri.
+- Kablolar 3D'de; kamera hafif eğik izometrik seçenek.
+- Veri hattı (NIST/ENDF LUT) ve fotoelektrik kenar yapısı.

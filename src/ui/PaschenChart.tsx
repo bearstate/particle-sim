@@ -21,7 +21,7 @@ export function PaschenChart(props: { gas: GasId; pressurePa: number; gapM: numb
     const lo = -2; // log10(Pa*m)
     const hi = 4;
     const yLo = Math.log10(100);
-    const yHi = Math.log10(3e5);
+    const yHi = Math.log10(3e6);
     const pts: string[] = [];
     for (let i = 0; i <= 240; i++) {
       const lx = lo + ((hi - lo) * i) / 240;
@@ -59,7 +59,7 @@ export function PaschenChart(props: { gas: GasId; pressurePa: number; gapM: numb
   const onChart = Number.isFinite(vNow) && vNow > Math.pow(10, yMin) && vNow < Math.pow(10, yMax) && pd > Math.pow(10, xMin) && pd < Math.pow(10, xMax);
 
   const decades = [-2, -1, 0, 1, 2, 3, 4];
-  const vTicks = [100, 1000, 1e4, 1e5];
+  const vTicks = [100, 1000, 1e4, 1e5, 1e6];
 
   return (
     <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Paschen egrisi">
@@ -75,7 +75,7 @@ export function PaschenChart(props: { gas: GasId; pressurePa: number; gapM: numb
         <g key={v}>
           <line x1={PAD.l} x2={W - PAD.r} y1={toY(v)} y2={toY(v)} stroke="#242a36" />
           <text x={PAD.l - 6} y={toY(v) + 3} fill="#868fa1" fontSize="10" textAnchor="end" fontFamily="ui-monospace, monospace">
-            {v >= 1000 ? `${v / 1000}k` : v}
+            {v >= 1e6 ? `${v / 1e6}M` : v >= 1000 ? `${v / 1000}k` : v}
           </text>
         </g>
       ))}

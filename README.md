@@ -24,8 +24,14 @@ ikincil ışınım, nükleer dönüşüm ve biyolojik etki.
   tipli portlar arasında kablolama, seçili cihaz için otomatik üretilen
   kontrol dock'u, Bohr modelli mikro görünüm ve nüklid etiketleme
   (`Be-9 → Be-8`, `Th-232 → Th-233`). Tasarım: `docs/DESIGN.md`.
-- Sırada: three.js sahne katmanı (sabit kamera, bloom, demet parçacıkları,
-  ark), LINAC/siklotron/Marx/Cockcroft–Walton cihazları.
+- **Aşama 2b — sahne katmanı:** three.js, sabit ortografik kamera, bloom,
+  GPU parçacıklar, ark ve plazma; şematik moda geri dönülebilir (3D düğmesi).
+- **Aşama 3 — kaynaklar:** Cockcroft–Walton, Marx, klistron + LINAC (e⁻/p⁺).
+  Tungsten 6.19 MeV üstünde nötron verir.
+- **Aşama 5 — zaman:** 1×…1e9× saat; toryum battaniyesinde Th-233 → Pa-233 →
+  U-233 envanteri (Bateman).
+- **Aşama 6 — doz:** hücre örneği; Gy/s, Sv/h, LQ hayatta kalma, DNA hasarı.
+- Hazır kurulumlar ve yerel kayıt. Sırada: termal zaman entegrasyonu, veri hattı.
 
 ## Kurulum
 

@@ -79,7 +79,10 @@
     "protons": "proton",
     "neutrons": "nötron",
     "electrons": "elektron",
-    "shell": "kabuk"
+    "shell": "kabuk",
+    "tube": "Tüp",
+    "spectrum": "X-ışını spektrumu (Kramers + karakteristik)",
+    "paschen": "Paschen eğrisi, 20 cm katot-anot aralığı. Turuncu nokta çalışma noktası; eğrinin üstündeyse deşarj."
   },
   "event": {
     "electron_arrives": "Elektron geliyor",
