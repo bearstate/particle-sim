@@ -180,5 +180,22 @@
     "proton": "proton",
     "noRf": "RF gücü yok: klistronu bağla",
     "kilpatrick": "Kilpatrick sınırı aşıldı: boşluklarda ark"
+  },
+  "time": {
+    "play": "Oynat",
+    "pause": "Durdur",
+    "scale": "Zaman hızlandırma",
+    "elapsed": "Geçen sim süresi",
+    "reset": "Sıfırla"
+  },
+  "inventory": {
+    "title": "Nüklid envanteri",
+    "nuclide": "Nüklid",
+    "atoms": "Atom",
+    "activity": "Aktivite",
+    "halfLife": "T½",
+    "captures": "yakalama/s",
+    "flux": "akı",
+    "none": "Bu element için modellenmiş nötron tepkimesi yok."
   }
 }

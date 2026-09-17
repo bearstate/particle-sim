@@ -293,3 +293,23 @@ svg.atom { display: block; margin: 0 auto; }
   padding: 3px 9px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
 }
 .scene-toggle.on { color: var(--accent); border-color: var(--accent); }
+
+/* ===== Zaman kontrolu ===== */
+.timectl {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px;
+}
+.timectl > .tab { font-size: 12px; min-width: 34px; }
+.timectl-scale { flex: 1; min-width: 160px; max-width: 420px; }
+.timectl-scale .control-head { margin-bottom: 0; }
+.timectl-clock { display: flex; flex-direction: column; min-width: 120px; }
+.timectl-clock .k { font-size: 11px; color: var(--muted); }
+.timectl-clock .v { font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; }
+
+.inventory { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.inventory h3 { font-size: 11px; font-weight: 600; margin: 0 0 6px; color: var(--muted); letter-spacing: .03em; text-transform: uppercase; }
+.inventory table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.inventory td, .inventory th { padding: 2px 4px; text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.inventory th { color: var(--muted); font-weight: 500; }
+.inventory td:first-child, .inventory th:first-child { text-align: left; font-family: inherit; }
+.inventory .bar { height: 4px; background: var(--neutron); border-radius: 2px; margin-top: 2px; opacity: .7; }

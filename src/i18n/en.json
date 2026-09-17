@@ -180,5 +180,22 @@
     "proton": "proton",
     "noRf": "No RF power: wire a klystron",
     "kilpatrick": "Kilpatrick limit exceeded: gaps arcing"
+  },
+  "time": {
+    "play": "Play",
+    "pause": "Pause",
+    "scale": "Time acceleration",
+    "elapsed": "Elapsed sim time",
+    "reset": "Reset"
+  },
+  "inventory": {
+    "title": "Nuclide inventory",
+    "nuclide": "Nuclide",
+    "atoms": "Atoms",
+    "activity": "Activity",
+    "halfLife": "T½",
+    "captures": "captures/s",
+    "flux": "flux",
+    "none": "No modelled neutron reaction for this element."
   }
 }

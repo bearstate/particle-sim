@@ -1,6 +1,6 @@
 import type { DeviceInstance, Wire } from './model.ts';
 import { connectedTo } from './model.ts';
-import { specOf, TUBE, LINAC } from './catalog.ts';
+import { specOf, TUBE, LINAC, PX_PER_M } from './catalog.ts';
 import { gasProperties, relativeDensity, type GasId } from '../physics/gas/gases.ts';
 import { breakdownVoltageV } from '../physics/gas/paschen.ts';
 import { sparkLengthM, arcRatePerS } from '../physics/gas/arc.ts';
@@ -101,6 +101,8 @@ export interface TargetSolution {
   readonly xrayEfficiency: number;
   readonly heatW: number;
   readonly tempK: number;
+  /** Alinan notron akisi, 1/(m^2 s). Kati acili geometriden: Y/(4 pi d^2). */
+  readonly neutronFluxPerM2S: number;
   readonly product: NuclideId | null;
   readonly event: 'photoneutron' | 'below_threshold' | 'capture' | 'photons' | 'proton_heat' | null;
 }
@@ -325,7 +327,7 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
   const primaryHits = new Map<string, BeamSegment>();
   for (const b of beams) if ((b.kind === 'electron' || b.kind === 'proton') && b.targetId) primaryHits.set(b.targetId, b);
 
-  const resolve = (d: DeviceInstance, incoming: Incoming, sourceId: string | null, energyMeV: number, beamPowerW: number): TargetSolution => {
+  const resolve = (d: DeviceInstance, incoming: Incoming, sourceId: string | null, energyMeV: number, beamPowerW: number, neutronFluxPerM2S = 0): TargetSolution => {
     const element = elementBySymbol(str(d.params['element'], 'W')) ?? elementBySymbol('W')!;
     const nuclide: NuclideId = { Z: element.Z, A: mostAbundantA(element.Z, element.massNumber) };
     const thresholdMeV = naturalThresholdMeV(element.Z, element.massNumber);
@@ -344,10 +346,10 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
     const faceM2 = 0.01 * 0.02;
     const body: ThermalBody = { massKg: densityKgPerM3(element) * faceM2 * thicknessM, specificHeatJPerKgK: element.specificHeatJPerKgK, surfaceAreaM2: 2 * faceM2 + 2 * (0.01 + 0.02) * thicknessM, emissivity: 0.35, conductanceWPerK: 0.05, ambientTempK: 293.15, meltingPointK: element.meltingPointK, boilingPointK: element.boilingPointK, latentHeatFusionJPerKg: element.latentHeatFusionKJPerKg * 1000, latentHeatVaporJPerKg: element.latentHeatVaporKJPerKg * 1000 };
     const tempK = heatW > 0 ? Math.min(equilibriumTempK(body, heatW), element.meltingPointK) : 293.15;
-    return { element, nuclide, incoming, sourceId, electronEnergyMeV: energyMeV, beamPowerW, thresholdMeV, aboveThreshold, neutronYieldPerS, xrayEfficiency, heatW, tempK, product, event };
+    return { element, nuclide, incoming, sourceId, electronEnergyMeV: energyMeV, beamPowerW, thresholdMeV, aboveThreshold, neutronYieldPerS, xrayEfficiency, heatW, tempK, neutronFluxPerM2S, product, event };
   };
 
-  const secondary = new Map<string, { kind: 'neutrons' | 'photons'; from: string }>();
+  const secondary = new Map<string, { kind: 'neutrons' | 'photons'; from: string; fluxPerM2S: number }>();
   for (const d of targetDevices) {
     const hit = primaryHits.get(d.id);
     if (!hit) continue;
@@ -360,7 +362,7 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
     if (sol.incoming === 'electrons') {
       beams.push({ kind: 'xray', x1: c.x, y1: c.y, x2: c.x + 300, y2: c.y, intensity: Math.min(1, 0.3 + sol.xrayEfficiency * 40), sourceId: d.id, targetId: null });
       const photonHit = firstHitToRight(devices, d.id, d.x + specOf('target').w, c.y);
-      if (photonHit?.kind === 'target' && !secondary.has(photonHit.id)) secondary.set(photonHit.id, { kind: 'photons', from: d.id });
+      if (photonHit?.kind === 'target' && !secondary.has(photonHit.id)) secondary.set(photonHit.id, { kind: 'photons', from: d.id, fluxPerM2S: 0 });
     }
     if (sol.neutronYieldPerS > 0) {
       const intensity = Math.min(1, 0.3 + Math.log10(1 + sol.neutronYieldPerS / 1e6) / 8);
@@ -369,14 +371,16 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
       if (receiver) {
         const rc = center(receiver);
         beams.push({ kind: 'neutron', x1: c.x, y1: c.y, x2: rc.x, y2: rc.y, intensity, sourceId: d.id, targetId: receiver.id });
-        secondary.set(receiver.id, { kind: 'neutrons', from: d.id });
+        // Izotropik kaynak: alicinin yuzeyindeki aki Y/(4 pi d^2); d tezgah olceginden metreye.
+        const dM = Math.max(0.05, Math.hypot(rc.x - c.x, rc.y - c.y) / PX_PER_M);
+        secondary.set(receiver.id, { kind: 'neutrons', from: d.id, fluxPerM2S: sol.neutronYieldPerS / (4 * Math.PI * dM * dM) });
       }
     }
   }
   for (const d of targetDevices) {
     if (targets[d.id]) continue;
     const s = secondary.get(d.id);
-    targets[d.id] = s ? resolve(d, s.kind, s.from, 0, 0) : resolve(d, null, null, 0, 0);
+    targets[d.id] = s ? resolve(d, s.kind, s.from, 0, 0, s.fluxPerM2S) : resolve(d, null, null, 0, 0);
   }
 
   // MeV -> J tutarliligi icin (guc hesaplari eV ile yapildi; sabit burada kalsin)

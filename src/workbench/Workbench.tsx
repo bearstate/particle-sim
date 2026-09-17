@@ -10,6 +10,8 @@ import { DeviceGlyph, GlyphDefs } from './DeviceGlyph.tsx';
 import { BenchScene } from '../scene/BenchScene.tsx';
 import { useReducedMotion } from '../ui/useReducedMotion.ts';
 import { useTranslation } from 'react-i18next';
+import { useClock } from './clock.ts';
+import { TimeControl } from './TimeControl.tsx';
 
 /**
  * Tezgah duzeni: orta canvas, sagda palet + mikro gorunum, altta dock.
@@ -75,11 +77,37 @@ export function Workbench() {
     };
   }, [addDevice]);
 
+  // Yavas saat: 10 Hz'de ilerler; notron alan hedeflerin akisi maruziyete yazilir.
+  const solutionRef = useRef(solution);
+  solutionRef.current = solution;
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    let acc = 0;
+    const loop = (now: number) => {
+      acc += Math.min(0.25, (now - last) / 1000);
+      last = now;
+      if (acc >= 0.1) {
+        const receiving: Record<string, number> = {};
+        for (const [id, tg] of Object.entries(solutionRef.current.targets)) {
+          if (tg.incoming === 'neutrons' && tg.neutronFluxPerM2S > 0) receiving[id] = tg.neutronFluxPerM2S;
+        }
+        useClock.getState().tick(acc, receiving);
+        acc = 0;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   const beginPlace = (entry: PaletteEntry, e: ReactPointerEvent) => {
     setPlacing({ entry, x: e.clientX, y: e.clientY });
   };
 
   return (
+    <div>
+    <TimeControl />
     <div className="bench-layout">
       <div className="bench-main" ref={benchRef}>
         {scene3d ? <BenchScene devices={devices} solution={solution} reduce={reduce} /> : null}
@@ -107,6 +135,7 @@ export function Workbench() {
           <DeviceGlyph kind={placing.entry.kind} params={placing.entry.defaults} selected={false} active={false} />
         </svg>
       ) : null}
+    </div>
     </div>
   );
 }

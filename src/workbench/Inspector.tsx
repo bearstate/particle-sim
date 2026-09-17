@@ -6,17 +6,61 @@ import type { BenchSolution } from './solve.ts';
 import { nuclideLabel, specialIsotopeKey, bohrShells, neutronCount } from '../physics/data/nuclides.ts';
 import { si } from '../ui/Controls.tsx';
 import { useReducedMotion } from '../ui/useReducedMotion.ts';
+import { useClock, formatSimTime } from './clock.ts';
+import { computeInventory } from './inventory.ts';
+import { formatHalfLife } from '../physics/nuclear/decay.ts';
 
 /**
  * Mikro gorunum: secili hedefin atomu ve uzerinde olan biten.
  * Koreografi BohrAtom'un icinde; burada yalnizca mod secilir ve anlati yazilir.
  */
+function InventoryTable(props: { element: import('../physics/data/elements.ts').Element; thicknessMm: number; exposure: import('./clock.ts').Exposure | undefined; lang: 'tr' | 'en' }) {
+  const { t } = useTranslation();
+  const inv = computeInventory(props.element, props.thicknessMm, props.exposure);
+  if (!inv) return null;
+  const products = inv.rows.slice(1);
+  const maxAtoms = Math.max(1, ...products.map((r) => r.atoms));
+  const hl = (s: number) => {
+    if (!Number.isFinite(s)) return '∞';
+    const f = formatHalfLife(s);
+    const unit = props.lang === 'tr' ? { s: 's', min: 'dk', h: 'sa', d: 'g', y: 'y' }[f.unit] : f.unit;
+    return `${f.value < 10 ? f.value.toFixed(2) : f.value.toFixed(0)} ${unit}`;
+  };
+  return (
+    <div className="inventory">
+      <h3>{t('inventory.title')} · {inv.reaction.targetSymbol}-{inv.reaction.targetA} (n,γ)</h3>
+      <table>
+        <thead>
+          <tr><th>{t('inventory.nuclide')}</th><th>{t('inventory.atoms')}</th><th>{t('inventory.activity')}</th><th>{t('inventory.halfLife')}</th></tr>
+        </thead>
+        <tbody>
+          {inv.rows.map((r) => (
+            <tr key={r.id}>
+              <td>{r.id}{r.index > 0 ? <div className="bar" style={{ width: `${Math.max(2, (100 * r.atoms) / maxAtoms).toFixed(1)}%` }} /> : null}</td>
+              <td>{si(r.atoms, 2)}</td>
+              <td>{r.activityBq > 0 ? `${si(r.activityBq, 2)}Bq` : '—'}</td>
+              <td>{hl(r.halfLifeS)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="muted" style={{ fontSize: 11, marginTop: 6 }}>
+        {si(inv.captureRatePerS, 2)} {t('inventory.captures')} · {t('inventory.flux')} {si(props.exposure?.fluxPerM2S ?? 0, 2)}/m²s · {formatSimTime(props.exposure?.irradiatedS ?? 0, props.lang)}
+        {(props.exposure?.cooledS ?? 0) > 0 ? ` + ${formatSimTime(props.exposure?.cooledS ?? 0, props.lang)}` : ''}
+      </p>
+    </div>
+  );
+}
+
 export function Inspector(props: { solution: BenchSolution }) {
   const { t } = useTranslation();
   const reduce = useReducedMotion();
   const selected = useWorkbench((s) => s.devices.find((d) => d.id === s.selectedId) ?? null);
   const target = selected ? props.solution.targets[selected.id] : undefined;
   const [last, setLast] = useState<ActInfo | null>(null);
+  const exposure = useClock((s) => (selected ? s.exposure[selected.id] : undefined));
+  const thicknessMm = typeof selected?.params['thickness'] === 'number' ? (selected.params['thickness'] as number) : 2;
+  const lang = useTranslation().i18n.language === 'en' ? 'en' : 'tr';
 
   const mode: AtomMode = !target || !target.incoming
     ? 'idle'
@@ -94,6 +138,7 @@ export function Inspector(props: { solution: BenchSolution }) {
           </>
         ) : null}
       </dl>
+      <InventoryTable element={target.element} thicknessMm={thicknessMm} exposure={exposure} lang={lang} />
     </aside>
   );
 }
