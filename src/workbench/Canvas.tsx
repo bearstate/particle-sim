@@ -7,6 +7,10 @@ import { SparkLayer } from './fx/Sparks.tsx';
 import { BeamLayer } from './fx/Beam.tsx';
 import { useReducedMotion } from '../ui/useReducedMotion.ts';
 import type { BenchSolution } from './solve.ts';
+import { DecayBadge } from './fx/Decay.tsx';
+import { useClock } from './clock.ts';
+import { computeInventory } from './inventory.ts';
+import { elementBySymbol } from '../physics/data/elements.ts';
 
 /**
  * Tezgah: cihazlar suruklenir, elektrik portlari kabloyla baglanir, tiklayinca
@@ -27,6 +31,7 @@ export function Canvas(props: { solution: BenchSolution; flat?: boolean }) {
   const moveDevice = useWorkbench((s) => s.moveDevice);
   const addWire = useWorkbench((s) => s.addWire);
   const reduce = useReducedMotion();
+  const exposure = useClock((s) => s.exposure);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -143,6 +148,9 @@ export function Canvas(props: { solution: BenchSolution; flat?: boolean }) {
           ...(l ? { linac: { lengthsM: l.driftTubeLengthsM, arcing: l.arcing, species: l.species } } : {}),
           reduce,
         };
+        // Kararsiz hedef: envanter aktivitesi (Bateman) > 1 Bq ise trefoil + bozunma kivilcimlari.
+        const inv = d.kind === 'target' ? computeInventory(elementBySymbol(String(d.params['element'] ?? 'W')) ?? elementBySymbol('W')!, typeof d.params['thickness'] === 'number' ? (d.params['thickness'] as number) : 2, exposure[d.id], g?.nuclide.A) : null;
+        const activityBq = inv ? inv.rows.reduce((acc, r) => acc + r.activityBq, 0) : 0;
         const radiusPx = d.kind === 'vandegraaff' ? sphereRadiusPx(typeof d.params['radius'] === 'number' ? (d.params['radius'] as number) : 0.15) : 0;
         return (
           <g key={d.id} transform={`translate(${d.x} ${d.y})`} onPointerDown={(e) => onDevicePointerDown(e, d.id)} style={{ cursor: drag?.id === d.id ? 'grabbing' : 'grab' }}>
@@ -160,6 +168,7 @@ export function Canvas(props: { solution: BenchSolution; flat?: boolean }) {
 
               <SparkLayer cx={VDG_SPHERE.cx} cy={VDG_SPHERE.cy} radiusPx={radiusPx} lengthPx={v.sparkM * PX_PER_M} ratePerS={v.arcRatePerS} reduce={reduce} />
             ) : null}
+            {activityBq > 1 ? <DecayBadge activityBq={activityBq} w={spec.w} cx={48} cy={48} reduce={reduce} /> : null}
             {spec.ports.map((p) => {
               const pos = portOf(d.kind, p.id, d.params) ?? p;
               return (

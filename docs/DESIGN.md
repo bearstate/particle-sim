@@ -134,3 +134,8 @@ hasarı basamak yarısını morartır. Onarım görsel ölçekte: SSB 5–9 s, D
 14–20 s, kümelenmiş DSB kalıcı; kapasite 26 lezyon. Hücre ölünce zar
 kabarır (bleb), kromatin parçalanır. Sayımlar `survival.ts`'den gelir; çizilen
 lezyon sayısı telemetri değildir.
+
+Tezgâh tarafında da görünür: envanter aktivitesi 1 Bq'yi aşan hedefin köşesinde
+trefoil yanıp söner ve gövdesinden α (sarı, ağır) / β (mavi, hızlı) kıvılcımları
+fırlar (`src/workbench/fx/Decay.tsx`); sayı aktivitenin logaritmasıyla ölçeklenir,
+3D modda da SVG etiket katmanında çizilir.
