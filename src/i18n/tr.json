@@ -56,7 +56,8 @@
     "gapCount": "Boşluk sayısı",
     "mode": "Yapı",
     "particle": "Parçacık",
-    "tissue": "Doku tipi"
+    "tissue": "Doku tipi",
+    "isotope": "İzotop"
   },
   "gas": {
     "vacuum": "Yüksek vakum",
@@ -82,7 +83,12 @@
     "shell": "kabuk",
     "tube": "Tüp",
     "spectrum": "X-ışını spektrumu (Kramers + karakteristik)",
-    "paschen": "Paschen eğrisi, 20 cm katot-anot aralığı. Turuncu nokta çalışma noktası; eğrinin üstündeyse deşarj."
+    "paschen": "Paschen eğrisi, 20 cm katot-anot aralığı. Turuncu nokta çalışma noktası; eğrinin üstündeyse deşarj.",
+    "halfLife": "yarı ömür",
+    "decay": "bozunma",
+    "stable": "kararlı",
+    "noData": "veri yok",
+    "chain": "zincir"
   },
   "event": {
     "electron_arrives": "Elektron geliyor",
@@ -95,12 +101,34 @@
     "scatter": "Elektron saçıldı, foton çıkmadı",
     "photons_pass": "X-ışını fotonları geçiyor; çekirdek etkilenmiyor",
     "recoil": "Çekirdek geri tepti",
-    "proton_heat": "Protonlar hedefi ısıtıyor; bu enerjide fotonötron yok"
+    "proton_heat": "Protonlar hedefi ısıtıyor; bu enerjide fotonötron yok",
+    "neutron_arrives": "Nötron geliyor",
+    "photon_arrives": "Foton geliyor",
+    "ionize": "İç kabuktan (K) elektron koptu: iyonlaşma",
+    "photo_ionize": "Foton soğruldu, K elektronu fırladı: fotoelektrik olay",
+    "xray_char": "Üst kabuktan elektron boşluğa düştü: karakteristik X-ışını",
+    "capture_gamma": "Nötron yakalandı; bağlanma enerjisi γ fotonu olarak çıktı",
+    "alpha_prep": "Çekirdek kararsız: α kümesi (2p+2n) oluşuyor",
+    "alpha_out": "α parçacığı fırladı — artık {{label}}",
+    "beta_prep": "Bir nötron protona dönüşüyor",
+    "beta_minus": "β⁻ elektronu ve antinötrino çıktı — artık {{label}}",
+    "betaplus_prep": "Bir proton nötrona dönüşüyor",
+    "beta_plus": "β⁺ pozitronu ve nötrino çıktı — artık {{label}}",
+    "ec_prep": "K kabuğu elektronu çekirdeğe düşüyor: elektron yakalama",
+    "ec_done": "Proton nötrona döndü, nötrino çıktı — artık {{label}}",
+    "fission_stretch": "Bileşik çekirdek uzuyor, boyun oluşuyor",
+    "fission": "Fisyon: {{a}} + {{b}} + {{n}} nötron + γ",
+    "breakup": "{{from}} kararsız: iki α parçacığına ayrıldı",
+    "after": "{{time}} sonra",
+    "chainNote": "Bozunmalar tek atom için hızlandırılmış oynar; gerçek hızı yarı ömür belirler.",
+    "instant": "anında"
   },
   "isotope": {
     "protium": "protyum",
     "deuterium": "döteryum",
-    "tritium": "trityum"
+    "tritium": "trityum",
+    "natural": "doğal (en bol izotop)",
+    "u235": "zenginleştirilmiş U-235 (bölünebilir)"
   },
   "element": {
     "H": "Hidrojen",
@@ -228,6 +256,25 @@
     "dead": "Hücre öldü",
     "ld50": "LD50/60 ≈ 4.5 Gy",
     "disclaimer": "Eğitim modeli; gerçek dozimetri değildir.",
-    "lethalIn": "LD50 süresi"
+    "lethalIn": "LD50 süresi",
+    "dna": "DNA çift sarmalı — çekirdek yakın planı",
+    "legend_ssb": "tek zincir kırığı",
+    "legend_dsb": "çift zincir kırığı",
+    "legend_base": "baz hasarı",
+    "legend_radical": "OH• radikali (su radyolizi)",
+    "legend_ion": "iyonlaşma",
+    "repair": "Onarım: tek kırık dakikalar, çift kırık saatler içinde; kümelenmiş çift kırık çoğunlukla onarılamaz.",
+    "apoptosis": "Apoptoz: zar kabarıyor, kromatin parçalanıyor.",
+    "sparse": "X-ışını / e⁻: seyrek iyonlaşma; hasarın çoğu su radikalleri üzerinden (dolaylı etki).",
+    "dense": "p⁺ / nötron (geri tepen proton): yoğun iz, kümelenmiş kırıklar (doğrudan etki)."
+  },
+  "decay": {
+    "alpha": "α",
+    "beta-": "β⁻",
+    "beta+": "β⁺",
+    "ec": "elektron yakalama",
+    "2alpha": "2α parçalanma",
+    "sf": "kendiliğinden fisyon",
+    "stable": "kararlı"
   }
 }

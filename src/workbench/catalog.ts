@@ -40,6 +40,8 @@ export type ParamSpec =
       readonly labelKey: string;
       readonly kind: 'enum';
       readonly options: readonly { readonly value: string; readonly labelKey: string }[];
+      /** Yalnizca baska bir parametre su degerlerdeyken goster. */
+      readonly onlyIf?: { readonly key: string; readonly values: readonly string[] };
     }
   | {
       readonly key: string;
@@ -181,6 +183,7 @@ export const DEVICE_SPECS: Readonly<Record<DeviceKind, DeviceSpec>> = {
     ports: [],
     params: [
       { key: 'element', labelKey: 'param.element', kind: 'element', options: TARGET_ELEMENTS },
+      { key: 'isotope', labelKey: 'param.isotope', kind: 'enum', options: [{ value: 'natural', labelKey: 'isotope.natural' }, { value: 'u235', labelKey: 'isotope.u235' }], onlyIf: { key: 'element', values: ['U'] } },
       { key: 'thickness', labelKey: 'param.thickness', kind: 'number', min: 0.1, max: 50, step: 0.1, unit: 'mm', digits: 1 },
     ],
     emitter: { x: 48, y: 48 },

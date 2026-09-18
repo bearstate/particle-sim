@@ -80,7 +80,7 @@ export function Dock(props: { solution: BenchSolution }) {
             {t('dock.remove')}
           </button>
         </div>
-        <div className="dock-grid">{spec.params.map(renderParam)}</div>
+        <div className="dock-grid">{spec.params.filter((p) => p.kind !== 'enum' || !p.onlyIf || p.onlyIf.values.includes(String(value(p.onlyIf.key) ?? ''))).map(renderParam)}</div>
       </div>
       <div className="dock-telemetry">
         <Telemetry id={device.id} kind={device.kind} solution={props.solution} />

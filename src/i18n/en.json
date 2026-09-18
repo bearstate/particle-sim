@@ -56,7 +56,8 @@
     "gapCount": "Gap count",
     "mode": "Structure",
     "particle": "Particle",
-    "tissue": "Tissue type"
+    "tissue": "Tissue type",
+    "isotope": "Isotope"
   },
   "gas": {
     "vacuum": "High vacuum",
@@ -82,7 +83,12 @@
     "shell": "shell",
     "tube": "Tube",
     "spectrum": "X-ray spectrum (Kramers + characteristic)",
-    "paschen": "Paschen curve, 20 cm cathode-anode gap. Orange dot is the operating point; above the curve it discharges."
+    "paschen": "Paschen curve, 20 cm cathode-anode gap. Orange dot is the operating point; above the curve it discharges.",
+    "halfLife": "half-life",
+    "decay": "decay",
+    "stable": "stable",
+    "noData": "no data",
+    "chain": "chain"
   },
   "event": {
     "electron_arrives": "Electron arrives",
@@ -95,12 +101,34 @@
     "scatter": "Electron scattered, no photon",
     "photons_pass": "X-ray photons pass through; nucleus unaffected",
     "recoil": "Nucleus recoiled",
-    "proton_heat": "Protons heat the target; no photoneutrons at this energy"
+    "proton_heat": "Protons heat the target; no photoneutrons at this energy",
+    "neutron_arrives": "Neutron incoming",
+    "photon_arrives": "Photon incoming",
+    "ionize": "Inner-shell (K) electron knocked out: ionisation",
+    "photo_ionize": "Photon absorbed, K electron ejected: photoelectric effect",
+    "xray_char": "Outer electron dropped into the hole: characteristic X-ray",
+    "capture_gamma": "Neutron captured; binding energy left as a γ photon",
+    "alpha_prep": "Unstable nucleus: an α cluster (2p+2n) is forming",
+    "alpha_out": "α particle ejected — now {{label}}",
+    "beta_prep": "A neutron is turning into a proton",
+    "beta_minus": "β⁻ electron and antineutrino emitted — now {{label}}",
+    "betaplus_prep": "A proton is turning into a neutron",
+    "beta_plus": "β⁺ positron and neutrino emitted — now {{label}}",
+    "ec_prep": "A K-shell electron falls into the nucleus: electron capture",
+    "ec_done": "Proton became a neutron, neutrino emitted — now {{label}}",
+    "fission_stretch": "Compound nucleus stretches, a neck forms",
+    "fission": "Fission: {{a}} + {{b}} + {{n}} neutrons + γ",
+    "breakup": "{{from}} is unstable: split into two α particles",
+    "after": "after {{time}}",
+    "chainNote": "Decays play sped-up for a single atom; the half-life sets the real rate.",
+    "instant": "instantly"
   },
   "isotope": {
     "protium": "protium",
     "deuterium": "deuterium",
-    "tritium": "tritium"
+    "tritium": "tritium",
+    "natural": "natural (most abundant)",
+    "u235": "enriched U-235 (fissile)"
   },
   "element": {
     "H": "Hydrogen",
@@ -228,6 +256,25 @@
     "dead": "Cell died",
     "ld50": "LD50/60 ≈ 4.5 Gy",
     "disclaimer": "Teaching model; not real dosimetry.",
-    "lethalIn": "Time to LD50"
+    "lethalIn": "Time to LD50",
+    "dna": "DNA double helix — nucleus close-up",
+    "legend_ssb": "single-strand break",
+    "legend_dsb": "double-strand break",
+    "legend_base": "base damage",
+    "legend_radical": "OH• radical (water radiolysis)",
+    "legend_ion": "ionisation",
+    "repair": "Repair: single breaks within minutes, double breaks within hours; clustered double breaks mostly stay.",
+    "apoptosis": "Apoptosis: membrane blebs, chromatin fragments.",
+    "sparse": "X-rays / e⁻: sparse ionisation; most damage via water radicals (indirect action).",
+    "dense": "p⁺ / neutron (recoil proton): dense track, clustered breaks (direct action)."
+  },
+  "decay": {
+    "alpha": "α",
+    "beta-": "β⁻",
+    "beta+": "β⁺",
+    "ec": "electron capture",
+    "2alpha": "2α break-up",
+    "sf": "spontaneous fission",
+    "stable": "stable"
   }
 }

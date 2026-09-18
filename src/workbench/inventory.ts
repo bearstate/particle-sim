@@ -32,13 +32,13 @@ export function slabAtoms(element: Element, thicknessMm: number): number {
 }
 
 /** Elementin tezgahta modellenen ilk notron tepkimesi (yoksa null). */
-export function reactionFor(element: Element): NeutronReaction | null {
-  const list = reactionsForZ(element.Z).filter((r) => r.chain.length > 0);
+export function reactionFor(element: Element, A?: number): NeutronReaction | null {
+  const list = reactionsForZ(element.Z).filter((r) => r.chain.length > 0 && (A === undefined || r.targetA === A));
   return list[0] ?? null;
 }
 
-export function computeInventory(element: Element, thicknessMm: number, exposure: Exposure | undefined): Inventory | null {
-  const reaction = reactionFor(element);
+export function computeInventory(element: Element, thicknessMm: number, exposure: Exposure | undefined, A?: number): Inventory | null {
+  const reaction = reactionFor(element, A);
   if (!reaction) return null;
   const atoms0 = slabAtoms(element, thicknessMm);
   const irr = exposure?.irradiatedS ?? 0;

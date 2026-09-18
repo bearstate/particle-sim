@@ -86,3 +86,51 @@ Nötron koptuğunda küme küçülür ve etiket A'yı günceller.
 - Termal zaman entegrasyonu (şu an denge sıcaklığı), Marx darbe görselleri.
 - Kablolar 3D'de; kamera hafif eğik izometrik seçenek.
 - Veri hattı (NIST/ENDF LUT) ve fotoelektrik kenar yapısı.
+
+## Mikro görünüm perdeleri (2026-09-18, ikinci tur)
+
+Perdeleri `src/workbench/atomActs.ts` planlar, `BohrAtom.tsx` yalnızca çizer.
+Kabuklar CSS ile değil JS ile döner: bir kabuk elektronunun dünya açısı
+bilindiği için iyonlaşmada *tam o* elektron kopar, üst kabuktan *tam o*
+boşluğa elektron düşer.
+
+| Perde | Ne zaman | Ne görünür |
+|---|---|---|
+| `scatter` / `brems` / `photoneutron` | elektron gelir | öncekiyle aynı; fotonötron ürünü kararsızsa zincir devam eder |
+| `ionize` | elektron/proton/foton (fotoelektrik) | K elektronu fırlar, L elektronu düşer, karakteristik X-ışını çıkar |
+| `capture` | nötron gelir | yakalama + bağlanma enerjisi γ; ürün kararsızsa `decay` kuyruğa girer, fissile ise `fission` |
+| `alpha` | kararsız çekirdek | 2p2n kümesi kenarda oluşur, fırlar, çekirdek geri teper |
+| `betaMinus` / `betaPlus` / `ec` | kararsız çekirdek | kenardaki nükleon renk değiştirir, β parçacığı kıvrılarak çıkar, (anti)nötrino kesikli çizgi |
+| `fission` | U-235/U-233/Pu-239 + n | bileşik çekirdek uzar, iki parça + ν nötron + 2 γ; parçalar etiketli |
+| `breakup` | Be-8 | iki α'ya ayrılır |
+
+Bozunma verisi `src/physics/nuclear/nuclideTable.ts` (NuBase2020/AME2020):
+hedef izotopları, (γ,n)/(n,γ) ürünleri, Th-232/U-238/U-235 serileri. Zincir
+100 yıldan uzun yarı ömürde durur (`CHAIN_LIMIT_S`); anlatı "21.8 dk sonra:"
+diye bekleme süresini söyler ve panel yarı ömür + Q değerini gösterir.
+Boşta (demet yok) kararsız hedef kendi bozunmasını oynatır; demet varken %12
+karışır. Uranyum hedefte `isotope` parametresi (`natural` / `u235`) yalnızca
+element U iken görünür (`ParamSpec.onlyIf`).
+
+**Görsel zaman ≠ gerçek zaman.** U-238'in 4.5 milyar yıllık bozunması birkaç
+saniyede bir oynar; not satırı bunu söyler. Telemetri (envanter tablosu)
+yine Bateman'dan gelir, perdelerden değil.
+
+## Hücre yakın planı: DNA çift sarmalı
+
+`CellView.tsx` üstte hücreyi, altta çekirdekten büyütülmüş B-DNA sarmalını
+çizer (10.5 bp/dönüş, iki omurga π faz farkı, ön/arka derinlik). İzleri
+`src/workbench/dna.ts` planlar:
+
+- **foton**: dalga gelir, Compton noktasında elektron fırlar; seyrek iyonlaşma,
+  OH• radikalleri omurgaya yürür (dolaylı etki) → çoğunlukla SSB
+- **elektron**: aynı iz, birincil foton yok
+- **proton**: düz, yoğun iz; sarmalı kestiği yerde kümelenmiş DSB + SSB + baz hasarı (kalıcı)
+- **nötron**: kesikli çizgi, "H" üzerinde saçılır, geri tepen proton kısa yoğun iz bırakır; nötron saparak devam eder
+
+Lezyonlar baz çifti indeksine bağlıdır ve sarmalla döner: SSB tek omurgada
+boşluk, DSB iki omurga + basamak kopuk ve iki parça birbirinden kayar, baz
+hasarı basamak yarısını morartır. Onarım görsel ölçekte: SSB 5–9 s, DSB
+14–20 s, kümelenmiş DSB kalıcı; kapasite 26 lezyon. Hücre ölünce zar
+kabarır (bleb), kromatin parçalanır. Sayımlar `survival.ts`'den gelir; çizilen
+lezyon sayısı telemetri değildir.

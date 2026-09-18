@@ -347,7 +347,9 @@ export function solveBench(devices: readonly DeviceInstance[], wires: readonly W
 
   const resolve = (d: DeviceInstance, incoming: Incoming, sourceId: string | null, energyMeV: number, beamPowerW: number, neutronFluxPerM2S = 0): TargetSolution => {
     const element = elementBySymbol(str(d.params['element'], 'W')) ?? elementBySymbol('W')!;
-    const nuclide: NuclideId = { Z: element.Z, A: mostAbundantA(element.Z, element.massNumber) };
+    // Uranyumda "zenginlestirilmis" secimi U-235 verir (fisyon); digerlerinde en bol izotop.
+    const enriched = element.Z === 92 && str(d.params['isotope'], 'natural') === 'u235';
+    const nuclide: NuclideId = { Z: element.Z, A: enriched ? 235 : mostAbundantA(element.Z, element.massNumber) };
     const thresholdMeV = naturalThresholdMeV(element.Z, element.massNumber);
     const electrons = incoming === 'electrons';
     const aboveThreshold = electrons && energyMeV > thresholdMeV;
