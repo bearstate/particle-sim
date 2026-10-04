@@ -1,65 +1,132 @@
-# Parçacık Hızlandırma & Işınlama Simülatörü
+# Parçacık Hızlandırma ve Işınlama Simülatörü
 
-PhET Colorado tarzı, ama tek bir alana odaklandığı için çok daha derin bir web
-simülatörü: yüksek gerilim üretimi → parçacık hızlandırma → hedefle etkileşim →
-ikincil ışınım, nükleer dönüşüm ve biyolojik etki.
+Tarayıcıda çalışan bir fizik tezgâhı. Bir yüksek gerilim kaynağı kurup bir
+vakum tüpüne bağlıyorsunuz, çıkan elektronlar bir hedefe çarpıyor, hedeften
+çıkan X-ışınları ve nötronlar ikinci bir hedefi dönüştürüyor ya da bir hücre
+örneğine doz veriyor. Her adımın altında gerçek formüller ve yayımlanmış veri
+tabloları var; ekrandaki sayılar çizilen parçacıklardan değil, bu hesaplardan
+geliyor.
 
-Üç bölümlü bir tezgâh:
+Türkçe ve İngilizce arayüz.
 
-1. **Elektrik kaynağı** — Van de Graaff, Marx jeneratörü, Cockcroft–Walton
-   merdiveni, doğrusal hızlandırıcı, siklotron/sinkrotron. Komponentler doğru
-   çizilir ve doğru bağlanır; voltaj, akım, frekans, manyetik alan ayarlanabilir.
-2. **Etkileşim hücresi** — hedef elementi, tüp ortamı (vakum / hava / Ar / SF₆),
-   basınç, anot ve katot malzemesi seçilir. Plazma, bremsstrahlung X-ışını,
-   akkor ve erime, eşik üstünde fotonötron üretimi.
-3. **Sonuç** — ikincil parçacıklar ikinci bir hedefe çarpar: nükleer dönüşüm
-   zincirleri (Th-232 → U-233), aktivasyon, doz ve hücresel hasar.
+## Çalıştırma
 
-## Durum
-
-- **Aşama 1 — fizik çekirdeği:** `src/physics/` saf TypeScript'tir: React,
-  three.js veya DOM bilmez, Node'da test edilir, tarayıcıda Web Worker içinde
-  koşar. `tests/purity.test.ts` bu sınırı bekçi test olarak korur.
-- **Aşama 2 — tezgâh (şematik katman):** PhET tarzı sürükle-bırak palet,
-  tipli portlar arasında kablolama, seçili cihaz için otomatik üretilen
-  kontrol dock'u, Bohr modelli mikro görünüm ve nüklid etiketleme
-  (`Be-9 → Be-8`, `Th-232 → Th-233`). Tasarım: `docs/DESIGN.md`.
-- **Aşama 2b — sahne katmanı:** three.js, sabit ortografik kamera, bloom,
-  GPU parçacıklar, ark ve plazma; şematik moda geri dönülebilir (3D düğmesi).
-- **Aşama 3 — kaynaklar:** Cockcroft–Walton, Marx, klistron + LINAC (e⁻/p⁺).
-  Tungsten 6.19 MeV üstünde nötron verir.
-- **Aşama 5 — zaman:** 1×…1e9× saat; toryum battaniyesinde Th-233 → Pa-233 →
-  U-233 envanteri (Bateman).
-- **Aşama 6 — doz:** hücre örneği; Gy/s, Sv/h, LQ hayatta kalma, DNA hasarı.
-- Hazır kurulumlar ve yerel kayıt. Sırada: termal zaman entegrasyonu, veri hattı.
-
-## Kurulum
-
-Node.js 20+ gerekir.
+Gereken tek şey Node.js (20 veya daha yeni). Yoksa https://nodejs.org
+adresinden LTS sürümünü kurun.
 
 ```
+git clone https://github.com/bearstate/particle-sim.git
+cd particle-sim
 npm install
-npm test        # fizik altın testleri
-npm run dev     # geliştirme sunucusu
+npm run dev
 ```
 
-## Fizik doğruluğu
+Son komut bir adres yazdırır, genellikle http://localhost:5173. Onu tarayıcıda
+açın. Sunucu açık kaldığı sürece kaynak kodda yaptığınız değişiklikler sayfaya
+anında yansır.
 
-Her fizik fonksiyonu `docs/PHYSICS.md` içindeki bir denkleme referans verir ve
-yayımlanmış bir referans değere karşı test edilir (NIST ESTAR/XCOM, IAEA
-fotonükleer, AME2020, ICRP 103). Yaklaşım yapılan her yer kaynak kodda açıkça
-işaretlenmiştir — özellikle:
+Diğer komutlar:
 
-- Fotoelektrik tesir kesiti kabuk kenarları içermez; XCOM tablosu gelene kadar
-  yalnızca mertebe doğruluğundadır.
-- Yoğunluk etkisi düzeltmesi yüksek enerji asimptotudur.
-- Katz–Penfold **pratik** menzili verir, CSDA menzilini değil.
+```
+npm test           # fizik testleri (vitest)
+npm run typecheck  # TypeScript denetimi
+npm run build      # dist/ altına üretim derlemesi
+npm run preview    # derlenmiş sürümü yerelde açar
+```
+
+Derlenmiş `dist/` klasörü düz dosyalardan oluşur; herhangi bir statik
+sunucuya (GitHub Pages, Netlify, bir Apache dizini) kopyalanarak yayınlanabilir.
+
+## Nasıl kullanılır
+
+1. Sağdaki paletten bir cihazı tezgâha sürükleyin. En kısa zincir: Van de
+   Graaff, vakum tüpü, toprak, bir hedef (tungsten veya berilyum).
+2. Portları kabloyla bağlayın: jeneratörün yüksek gerilim portu tüpün anoduna,
+   toprak tüpün katoduna. Demet için kablo gerekmez; tüpün ekseninde ne varsa
+   ona çarpar.
+3. Alttaki panelden gerilimi, küre yarıçapını, gazı ve basıncı ayarlayın.
+   Kıvılcımlar gerilimle uzar; küreye sığmayan gerilim delinmeyle sınırlanır.
+4. Bir hedefi seçince sağ altta atom görünümü açılır: gelen elektron saçılır,
+   fren ışıması yapar, eşik üstündeyse çekirdekten nötron koparır. Kararsız
+   çekirdekler bozunmalarını oynatır, zincir etiketlenir
+   (Th-232, Th-233, Pa-233, U-233).
+5. Toryum battaniyesini nötron kaynağının yakınına koyun ve üstteki zaman
+   kaydırıcısını hızlandırın; envanter tablosu Bateman çözümüyle dolar.
+6. Hücre örneğini X-ışını konisine veya nötron kaynağının yanına koyun; doz
+   hızı, eşdeğer doz, hayatta kalma kesri ve DNA sarmalındaki kırıklar görünür.
+
+Sağ alttaki "Hazır kurulumlar" bölümü bu zincirleri tek tıkla kurar. Tezgâh
+tarayıcıda saklanır; sayfayı yenileyince kaldığınız yerden devam eder. "3D"
+düğmesi three.js sahnesi ile düz şematik görünüm arasında geçiş yapar.
+
+## Neler var
+
+Kaynaklar: Van de Graaff, Cockcroft–Walton merdiveni, Marx jeneratörü,
+klistron ile beslenen doğrusal hızlandırıcı (elektron veya proton).
+
+Etkileşim: vakum, hava, azot, argon, neon, helyum, SF₆ ve CO₂ dolu tüp;
+Paschen eğrisi, parıltı ve ark rejimleri; Kramers spektrumu ve karakteristik
+çizgiler; dev dipol rezonansı ve fotonötron eşikleri; hedef ısınması ve erimesi.
+
+Sonuç: nötron yakalama zincirleri, aktivasyon ve bozunma, 1× ile 10⁹× arası
+zaman ölçeği, ICRP 103 ağırlık faktörleriyle eşdeğer doz, lineer-kuadratik
+hayatta kalma modeli, hücre ve DNA yakın planı.
+
+## Kodun yapısı
+
+- `src/physics/` fizik çekirdeği. Saf TypeScript; React, three.js veya DOM
+  kullanmaz. `tests/purity.test.ts` bu sınırı denetler.
+- `src/workbench/` tezgâh: cihaz kataloğu, devre çözücü, SVG çizimler, atom ve
+  hücre görünümleri.
+- `src/scene/` three.js sahne katmanı.
+- `src/ui/` kaydırıcı, seçici ve grafik bileşenleri.
+- `src/i18n/` Türkçe ve İngilizce sözlükler.
+- `docs/PHYSICS.md` kullanılan her formül, `docs/DESIGN.md` tezgâhın tasarım
+  kararları, `docs/DATA_SOURCES.md` veri kaynakları ve atıfları.
+
+Her fizik fonksiyonu `docs/PHYSICS.md` içindeki bir denkleme bağlıdır ve
+yayımlanmış bir referans değere karşı test edilir (NIST ESTAR ve XCOM, IAEA
+fotonükleer kütüphanesi, AME2020, NuBase2020, ICRP 103). Yaklaşıklık yapılan
+yerler kaynak kodda işaretlidir; örneğin fotoelektrik tesir kesiti kabuk
+kenarlarını içermez ve Katz–Penfold formülü CSDA menzilini değil pratik
+menzili verir.
 
 ## Uyarı
 
-Bu yazılım **eğitim amaçlıdır**. Radyasyon korunması, klinik dozimetri, kalkan
-tasarımı veya herhangi bir gerçek maruziyet değerlendirmesi için kullanılamaz.
+Bu yazılım eğitim amaçlıdır. Radyasyon korunması, klinik dozimetri, kalkan
+tasarımı veya gerçek bir maruziyet değerlendirmesi için kullanılamaz.
 
 ## Lisans
 
-MIT. Kullanılan veri kaynaklarının atıfları `docs/DATA_SOURCES.md` içindedir.
+MIT. Veri kaynaklarının atıfları `docs/DATA_SOURCES.md` içindedir.
+
+---
+
+## English
+
+A browser-based physics bench. Build a high-voltage source, wire it to a
+vacuum tube, let the electrons hit a target, and follow the X-rays and neutrons
+into a second target or a cell sample. Every number on screen comes from the
+underlying formulas and published data tables, not from the drawn particles.
+The interface is available in Turkish and English.
+
+Requirements: Node.js 20 or newer.
+
+```
+git clone https://github.com/bearstate/particle-sim.git
+cd particle-sim
+npm install
+npm run dev
+```
+
+Open the printed address (usually http://localhost:5173). `npm test` runs the
+physics tests, `npm run build` writes a static site into `dist/`.
+
+Drag devices from the palette on the right, wire the electrical ports, adjust
+the controls at the bottom, and select a target to open the atom view. The
+"presets" list sets up a complete chain in one click.
+
+This software is for education only. It must not be used for radiation
+protection, clinical dosimetry, shielding design or any real exposure
+assessment. Licensed under MIT; data sources are credited in
+`docs/DATA_SOURCES.md`.
