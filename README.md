@@ -9,7 +9,18 @@ geliyor.
 
 Türkçe ve İngilizce arayüz.
 
-## Çalıştırma
+## Tarayıcıda açma
+
+Kurulum gerekmez. Şu adresi açmak yeterli:
+
+https://bearstate.github.io/particle-sim/
+
+Akıllı tahta, tablet veya herhangi bir bilgisayarda güncel bir tarayıcıyla
+(Chrome, Edge, Firefox, Safari) çalışır. Üç boyutlu sahne için WebGL2 gerekir;
+yoksa uygulama düz şematik görünümde açılır. Sayfa `main` dalına her
+gönderimde otomatik olarak yeniden derlenir.
+
+## Kendi makinenizde çalıştırma
 
 Gereken tek şey Node.js (20 veya daha yeni). Yoksa https://nodejs.org
 adresinden LTS sürümünü kurun.
@@ -110,7 +121,8 @@ into a second target or a cell sample. Every number on screen comes from the
 underlying formulas and published data tables, not from the drawn particles.
 The interface is available in Turkish and English.
 
-Requirements: Node.js 20 or newer.
+No installation needed: open https://bearstate.github.io/particle-sim/ in a
+current browser. To run it from source you need Node.js 20 or newer.
 
 ```
 git clone https://github.com/bearstate/particle-sim.git
