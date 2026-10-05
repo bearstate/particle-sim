@@ -20,6 +20,20 @@ Akıllı tahta, tablet veya herhangi bir bilgisayarda güncel bir tarayıcıyla
 yoksa uygulama düz şematik görünümde açılır. Sayfa `main` dalına her
 gönderimde otomatik olarak yeniden derlenir.
 
+## Akıllı tahtada ve internetsiz kullanım
+
+Okul ağlarında site engelli olabilir. Bunun için uygulamanın tek dosyalık bir
+sürümü var; internet bağlantısı istemez.
+
+1. İnternete açık bir bilgisayarda şu dosyayı indirin:
+   https://github.com/bearstate/particle-sim/releases/latest/download/parcacik-simulatoru.html
+2. Dosyayı bir USB belleğe kopyalayın.
+3. Tahtada USB belleği açıp dosyaya çift tıklayın. Tarayıcıda açılır.
+
+Dosyayı tahtanın masaüstüne kopyalarsanız USB olmadan da açılır. Kurduğunuz
+tezgâh o tahtanın tarayıcısında saklanır. Kaynaktan üretmek için
+`npm run build:offline` komutu `dist-offline/` klasörüne aynı dosyayı yazar.
+
 ## Kendi makinenizde çalıştırma
 
 Gereken tek şey Node.js (20 veya daha yeni). Yoksa https://nodejs.org
@@ -122,7 +136,10 @@ underlying formulas and published data tables, not from the drawn particles.
 The interface is available in Turkish and English.
 
 No installation needed: open https://bearstate.github.io/particle-sim/ in a
-current browser. To run it from source you need Node.js 20 or newer.
+current browser. Where the site is blocked (school networks), download the
+single-file offline build from
+https://github.com/bearstate/particle-sim/releases/latest/download/parcacik-simulatoru.html
+and open it from a USB stick. To run it from source you need Node.js 20 or newer.
 
 ```
 git clone https://github.com/bearstate/particle-sim.git

@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:offline": "vite build --base ./ --outDir dist-offline --emptyOutDir && node scripts/inline-offline.mjs dist-offline",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

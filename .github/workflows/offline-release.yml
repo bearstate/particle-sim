@@ -1,0 +1,43 @@
+name: Offline release
+
+# v ile baslayan bir etiket gonderilince tek dosyalik cevrimdisi surumu
+# derler ve GitHub Releases'e ekler.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Var olan etiket (orn. v0.1.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:offline
+      - name: Publish
+        run: |
+          NOTES="Akıllı tahta ve internetsiz kullanım için tek dosya. parcacik-simulatoru.html dosyasını indirip USB belleğe kopyalayın, tahtada çift tıklayarak açın.
+
+          Single-file offline build. Download parcacik-simulatoru.html, copy it to a USB stick and open it by double-clicking."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist-offline/parcacik-simulatoru.html --clobber
+          else
+            gh release create "$TAG" dist-offline/parcacik-simulatoru.html --title "$TAG" --notes "$NOTES"
+          fi
